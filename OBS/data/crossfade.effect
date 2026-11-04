@@ -1,0 +1,26 @@
+uniform float4x4 ViewProj;
+uniform texture2d image;
+uniform float opacity = 1.0;
+sampler_state linearSampler {
+    Filter = Linear;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
+struct VertIn { float4 pos : POSITION; float2 uv : TEXCOORD0; };
+struct VertOut { float4 pos : POSITION; float2 uv : TEXCOORD0; };
+VertOut VSDefault(VertIn input) {
+    VertOut output;
+    output.pos = mul(float4(input.pos.xyz, 1.0), ViewProj);
+    output.uv = input.uv;
+    return output;
+}
+float4 PSDefault(VertOut input) : TARGET {
+    float4 color = image.Sample(linearSampler, input.uv);
+    return color * opacity;
+}
+technique Draw {
+    pass {
+        vertex_shader = VSDefault(input);
+        pixel_shader = PSDefault(input);
+    }
+}
