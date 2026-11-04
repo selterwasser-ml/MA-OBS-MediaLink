@@ -1,0 +1,7 @@
+* text=auto
+*.py text eol=lf
+*.lua text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.gdtf binary
+*.png binary
