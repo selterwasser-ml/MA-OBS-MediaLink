@@ -1,5 +1,13 @@
 # Änderungen
 
+## Build-Infrastruktur für OBS v0.45 / MA v0.42
+
+- GitHub Actions führt die mitgelieferten OBS-/MA-Tests aus und baut anschließend das Plugin für Windows x64 mit Visual Studio 2026.
+- OBS 33.0.0 und die OBS-/Qt-Abhängigkeiten sind mit Archivprüfsummen festgelegt; feste lokale SDK-Pfade entfallen im normalen Build.
+- Windows-ZIP und separates MA-/Fixture-Paket mit Buildinformationen und SHA256-Prüfsummen.
+- Einheitliche Plugin-Ordnerstruktur im CMake-Installationsschritt und Anleitung für Build und ZIP-Installation.
+- Pluginfunktionen, Versionsnummern, Fixture-Typ-IDs und Kanalbelegung unverändert.
+
 ## OBS v0.45 BETA
 
 - Der frühere manuell platzierbare Crossfade-Quellentyp wird nicht mehr unter „Quelle hinzufügen“ angeboten.

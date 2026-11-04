@@ -15,11 +15,11 @@ Copyright © 2026 Oliver Cassel
 | Fixtureprofile | MA OBS MediaLink Fade (3 Kanäle) und MA OBS MediaLink Steuerung (7 Kanäle) |
 | Installer | In Vorbereitung |
 
-Dieses Paket enthält Quellcode und Buildskripte. Eine vorkompilierte DLL oder ein ausführbarer Installer ist noch nicht enthalten. Der vollständige Windows-Build der OBS-Version v0.45 steht aus. Die MA-Oberfläche v0.42 wurde auf WebRemote und Hardware positiv getestet; die genaue grandMA3-Softwareversion wird für die öffentliche Kompatibilitätsliste noch erfasst.
+Dieses Repository enthält Quellcode und einen [automatischen Windows-Build](docs/BUILD.md). Nach erfolgreichen Tests stellt GitHub die fertige DLL als Windows-ZIP sowie das passende MA-/Fixture-Paket bereit. Ein ausführbarer Installer ist noch nicht enthalten. Die MA-Oberfläche v0.42 wurde auf WebRemote und Hardware positiv getestet; die genaue grandMA3-Softwareversion wird für die öffentliche Kompatibilitätsliste noch erfasst.
 
 ## Einstieg
 
-1. [OBS bauen und installieren](OBS/README.md). MediaLink über das Dock oder **Werkzeuge → MA OBS MediaLink** einrichten. Eine zusätzliche Crossfade-Quelle in einer Szene ist nicht erforderlich.
+1. [Windows-Paket über GitHub bauen](docs/BUILD.md) und [manuell installieren](docs/WINDOWS_ZIP.md), oder [lokal aus dem Quellcode bauen](docs/BUILD.md#lokal-bauen). MediaLink über das Dock oder **Werkzeuge → MA OBS MediaLink** einrichten. Eine zusätzliche Crossfade-Quelle in einer Szene ist nicht erforderlich.
 2. [Fixtureprofile importieren und patchen](fixtures/README.md). Beide Fixtures verwenden zusammen zehn aufeinanderfolgende DMX-Adressen im selben Universum.
 3. [grandMA3-Plugin importieren und einrichten](grandMA3/README_START_HIER.md). Die XML- und Lua-Datei aus grandMA3/MA3/ gemeinsam verwenden. Lesesequenz, Fixture-IDs, Steuersequenz und Presetbereich werden im Plugin festgelegt.
 4. Fade-Preset ausdrücklich in Cue Part 0 speichern. Die Cue-Note `OBS:1` ruft die erste Szene in der OBS-Szenenliste auf, `OBS:6` die sechste. Großbuchstaben, Doppelpunkt, Nummer; ohne Leerzeichen oder führende Nullen.
@@ -31,11 +31,13 @@ Eine Änderung der Reihenfolge in OBS verändert die Szenennummern. Die Lesesequ
 
 | Verzeichnis | Inhalt |
 | --- | --- |
-| OBS/ | C++-/Qt-Plugin, Ressourcen, lokale Windows-Buildskripte und Tests |
+| OBS/ | C++-/Qt-Plugin, Ressourcen, Windows-Buildskripte, festgelegte Abhängigkeiten und Tests |
 | grandMA3/ | Importdateien, wartbarer Lua-Kern, Erzeugungswerkzeug und Tests |
 | fixtures/ | GDTF-Profile und Patchanleitung |
+| docs/ | Automatischer Build und Installation des Windows-ZIPs |
+| tools/ | Gemeinsamer Testaufruf und Erzeugung der Downloadpakete |
 
-[Änderungen](CHANGELOG.md) · [Lizenz](LICENSE)
+[Änderungen](CHANGELOG.md) · [Lizenz](LICENSE) · [Drittanbieter und Inhalte](THIRD_PARTY.md)
 
 ## Lizenz
 

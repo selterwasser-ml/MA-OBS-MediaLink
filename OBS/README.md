@@ -67,7 +67,7 @@ Ein Klick auf Farin und anschließend auf Bela in der Widmung öffnet das unver�
 
 ## Installation
 
-Das Paket enthält Quellcode und Skripte, keine vorkompilierte DLL. PowerShell im entpackten OBS-Ordner öffnen:
+Für eine fertige DLL den [automatischen Windows-Build](../docs/BUILD.md) verwenden und anschließend die [ZIP-Installationsanleitung](../docs/WINDOWS_ZIP.md) befolgen. Zum lokalen Bauen werden Visual Studio 2026 mit C++-Werkzeugen und CMake ab 3.28 benötigt. PowerShell im entpackten OBS-Ordner öffnen:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Build_OBS33_Release.ps1"
@@ -83,7 +83,7 @@ Danach OBS neu starten. Das Installationsskript sichert vorhandene Plugin-Dateie
 
 ## Prüfstand
 
-Die mitgelieferten Tests prüfen ausgewählte Teile der Steuerung. Sie ersetzen keinen Test des vollständigen Plugins in OBS und auf grandMA3. Die Windows-Buildskripte erwarten lokale OBS-33- und Qt6-Abhängigkeiten; deren Standardpfad kann beim Build über `-DepsRoot` angepasst werden. Das Installationsskript setzt eine bestehende Installation unter `C:\ProgramData\obs-studio\plugins\obs-sacn-crossfade` voraus und sichert diese vor dem Austausch. Für eine Erstinstallation muss der erzeugte Ordner `Release\obs-sacn-crossfade` manuell in den OBS-Pluginordner kopiert werden.
+Die mitgelieferten Tests prüfen ausgewählte Teile der Steuerung. Sie ersetzen keinen Test des vollständigen Plugins in OBS und auf grandMA3. Der Windows-Build lädt die in `dependencies.json` festgelegten OBS-33- und Qt6-Abhängigkeiten selbstständig und prüft die Archivprüfsummen. Das lokale Installationsskript setzt eine bestehende Installation unter `C:\ProgramData\obs-studio\plugins\obs-sacn-crossfade` voraus und sichert diese vor dem Austausch. Für eine Erstinstallation die [ZIP-Installationsanleitung](../docs/WINDOWS_ZIP.md) verwenden. Der automatische Build führt das Installationsskript nicht aus.
 
 Copyright © 2026 Oliver Cassel
 

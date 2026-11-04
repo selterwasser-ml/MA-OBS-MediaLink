@@ -1,0 +1,35 @@
+{
+  "architecture": "x64",
+  "obsVersion": "33.0.0",
+  "qtVersion": "6.11.1",
+  "archives": [
+    {
+      "name": "33.0.0.zip",
+      "url": "https://github.com/obsproject/obs-studio/archive/refs/tags/33.0.0.zip",
+      "sha256": "bdab14146289f39be6c12d5165812ba5b37b5231f857cb84aa5e4bafeaaa8686",
+      "directory": "obs-studio-33.0.0",
+      "containsRootDirectory": true
+    },
+    {
+      "name": "windows-deps-2026-10-23-x64.zip",
+      "url": "https://github.com/obsproject/obs-deps/releases/download/2026-10-23/windows-deps-2026-10-23-x64.zip",
+      "sha256": "7508972a867a0ef68c26cd8bdba61fd999edd0a92fa9eb9585774de9bf51bfbe",
+      "directory": "obs-deps-2026-10-23-x64",
+      "containsRootDirectory": false
+    },
+    {
+      "name": "windows-deps-qt6-2026-10-23-x64.zip",
+      "url": "https://github.com/obsproject/obs-deps/releases/download/2026-10-23/windows-deps-qt6-2026-10-23-x64.zip",
+      "sha256": "78cd7a138464bb6edcdd3b85fcd63a5a7c69e369629963f3bc395bab74fb3f47",
+      "directory": "obs-deps-qt6-2026-10-23-x64",
+      "containsRootDirectory": false
+    },
+    {
+      "name": "windows-deps-2026-10-23-x86.zip",
+      "url": "https://github.com/obsproject/obs-deps/releases/download/2026-10-23/windows-deps-2026-10-23-x86.zip",
+      "sha256": "bca7f4d6603028a7ac9cfa6a88aa3ff0e9402627593633e26cc0b3a5e5312a9b",
+      "directory": "obs-studio-33.0.0/.deps/obs-deps-2026-10-23-x86",
+      "containsRootDirectory": false
+    }
+  ]
+}
