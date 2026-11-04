@@ -1,0 +1,32 @@
+# Build outputs and SDK downloads
+**/build/
+**/build_*/
+**/out/
+**/.deps/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/compile_commands.json
+**/*.dll
+**/*.pdb
+**/*.obj
+**/*.lib
+**/*.exe
+**/*.ilk
+**/*.exp
+
+# Local editor and test outputs
+.vs/
+.vscode/
+**/__pycache__/
+**/*_under_test.inc
+**/*.pyc
+**/*.user
+
+# Local configuration, credentials and logs
+.env
+.env.*
+**/*.log
+**/monitor_ui.json*
+**/native_settings.json*
+**/video_rules.json*
