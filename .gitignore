@@ -30,3 +30,6 @@
 **/monitor_ui.json*
 **/native_settings.json*
 **/video_rules.json*
+
+**/Release/
+/dist/
