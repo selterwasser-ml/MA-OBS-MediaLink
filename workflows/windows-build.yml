@@ -1,0 +1,67 @@
+name: Tests und Windows-Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUTF8: '1'
+
+jobs:
+  tests:
+    name: Steuerungs- und MA-Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Testwerkzeuge bereitstellen
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y g++ liblua5.4-0
+      - name: Alle mitgelieferten Tests ausfuehren
+        run: python tools/run_tests.py
+
+  windows:
+    name: Windows x64 / OBS 33
+    needs: tests
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # Cache downloads only. SDKs are extracted, checked and built on this runner.
+      - uses: actions/cache@v4
+        with:
+          path: OBS/.deps/downloads
+          key: obs33-x64-downloads-${{ hashFiles('OBS/dependencies.json') }}
+      - name: DLL und Ressourcen bauen
+        run: ./OBS/Build_OBS33_Release.ps1
+      - name: Windows-Paket, MA-Paket und Pruefsummen erzeugen
+        env:
+          MEDIALINK_REVISION: ${{ github.sha }}
+        run: python tools/build_packages.py
+      - name: Pakete zum Herunterladen bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: MA-OBS-MediaLink-v045-MA042-windows-x64
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
