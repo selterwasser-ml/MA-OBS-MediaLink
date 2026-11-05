@@ -13,9 +13,11 @@ Copyright © 2026 Oliver Cassel
 | OBS-Plugin | v0.45 BETA, Quellpaket für Windows x64 / OBS 33 |
 | grandMA3-Plugin | v0.42 BETA |
 | Fixtureprofile | MA OBS MediaLink Fade (3 Kanäle) und MA OBS MediaLink Steuerung (7 Kanäle) |
-| Installer | Windows x64 / normale OBS-33-Installation; Beta-Test erforderlich |
+| Installer | Windows x64 / normale OBS-33-Installation; auch ohne Entwicklerwerkzeuge getestet |
 
-Dieses Repository enthält Quellcode und einen [automatischen Windows-Build](docs/BUILD.md). Nach erfolgreichen Tests stellt GitHub Windows-Setup, Windows-ZIP und das passende MA-/Fixture-Paket bereit. Die MA-Oberfläche v0.42 wurde auf WebRemote und Hardware positiv getestet; die genaue grandMA3-Softwareversion wird für die öffentliche Kompatibilitätsliste noch erfasst.
+Dieses Repository enthält Quellcode und einen [automatischen Windows-Build](docs/BUILD.md). Nach erfolgreichen Tests stellt GitHub Windows-Setup, Windows-ZIP und das passende MA-/Fixture-Paket bereit. Der Projektbetreiber hat **OBS Studio 33.0.1** mit **grandMA3 2.5.0.3** positiv getestet. Die saubere Installation auf einem zweiten Rechner ohne Entwicklerwerkzeuge wurde ebenfalls bestätigt. Diese Rückmeldungen beziehen sich auf den getesteten Aufbau; andere Versionen und Hardwarekombinationen sind damit nicht pauschal geprüft.
+
+Die [Beta-Versionshinweise](releases/v0.45.0-beta.1.md) nennen Download-Dateien, Teststand und bekannte Einschränkungen. Der [Release-Ablauf](docs/BETA_RELEASE.md) übernimmt den festgelegten getesteten Build in einen unveröffentlichten Entwurf. [Spätere Erweiterungen](docs/NEXT_STEPS.md) bleiben separat vorgemerkt.
 
 ## Einstieg
 
