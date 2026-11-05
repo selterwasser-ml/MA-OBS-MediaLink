@@ -1,4 +1,4 @@
-// MA OBS MediaLink v0.45 Video + Audio Control Beta - Qt/UI-thread orchestration for OBS media sources.
+// MA OBS MediaLink v0.46 Video + Audio Control Beta - Qt/UI-thread orchestration for OBS media sources.
 // Included exactly once from plugin.cpp, inside its anonymous namespace.
 // Never retain OBS scene/source pointers across a collection switch.
 #pragma once
@@ -745,13 +745,14 @@ static void ma_settings_dialog(int initial_tab) {
     QSettings view(ma_ui_state_path(),QSettings::IniFormat);
     view.beginGroup("collections/"+QString::fromLatin1(original_collection.toUtf8().toHex()));
     QDialog dialog(static_cast<QWidget *>(obs_frontend_get_main_window()));
+    dialog.setWindowIcon(QIcon(QStringLiteral(":/ma-obs-medialink/medialink-logo.png")));
     ma_settings_window=&dialog;
-    dialog.setWindowTitle("MA OBS MediaLink · v0.45 BETA – Einstellungen");
+    dialog.setWindowTitle("MA OBS MediaLink · v0.46 BETA – Einstellungen");
     dialog.resize(1050,720); dialog.setMinimumSize(760,480);
     const QByteArray geometry=view.value("geometry").toByteArray();
     if (!geometry.isEmpty()) dialog.restoreGeometry(geometry);
     auto *window_layout=new QVBoxLayout(&dialog);
-    window_layout->addWidget(new QLabel("MA OBS MediaLink · v0.45 BETA",&dialog));
+    window_layout->addWidget(new QLabel("MA OBS MediaLink · v0.46 BETA",&dialog));
     auto *tabs=new QTabWidget(&dialog); tabs->setObjectName("medialink_settings_tabs");
     window_layout->addWidget(tabs,1);
     std::function<bool()> save_native;
@@ -1078,12 +1079,14 @@ static void ma_settings_dialog(int initial_tab) {
     tabs->addTab(ma_create_diagnostic_panel(tabs),"Diagnose");
     auto *about=new QWidget(tabs);
     auto *about_layout=new QVBoxLayout(about);
+    ma_add_about_identity(about,about_layout);
     auto *name=new QLabel("MA OBS MediaLink",about);
     name->setStyleSheet("font-size:22px; font-weight:bold;"); about_layout->addWidget(name);
-    about_layout->addWidget(new QLabel("Version 0.45 · BETA",about));
+    about_layout->addWidget(new QLabel("Version 0.46 · BETA",about));
     auto *summary=new QLabel("Szenen, Video und Audio aus grandMA3 steuern.",about);
     summary->setWordWrap(true); about_layout->addWidget(summary);
     about_layout->addWidget(new QLabel("Copyright © 2026 Oliver Cassel",about));
+    ma_add_repository_button(about,about_layout);
     about_layout->addWidget(ma_create_dedication(about));
     auto *beta_note=new QLabel("Diese Beta-Version befindet sich in Entwicklung.",about);
     beta_note->setWordWrap(true); about_layout->addWidget(beta_note); about_layout->addStretch();

@@ -1,4 +1,4 @@
-// MA OBS MediaLink v0.45. OBS media commands, independent of the Qt display.
+// MA OBS MediaLink v0.46. OBS media commands, independent of the Qt display.
 #pragma once
 enum class MAMediaIntent { Toggle, Play, Pause, Restart, Stop };
 enum class MAMediaCommand { None, Play, Pause, Restart, Stop };

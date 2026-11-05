@@ -11,9 +11,26 @@ import json
 import os
 import struct
 import zipfile
+from html.parser import HTMLParser
+from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 PLUGIN = "obs-sacn-crossfade"
+
+
+def verify_local_guide(folder):
+    class Links(HTMLParser):
+        def handle_starttag(self, tag, attrs):
+            for key, value in attrs:
+                if key != 'href' or not value:
+                    continue
+                link = urlsplit(value)
+                if link.scheme or link.netloc or not link.path:
+                    continue
+                target = (folder / unquote(link.path)).resolve()
+                if not target.is_relative_to(folder.resolve()) or not target.is_file():
+                    raise ValueError('Missing or unsafe local guide link: ' + value)
+    Links().feed((folder / 'START_HIER.html').read_text(encoding='utf-8'))
 
 
 def verify_x64_dll(path):
@@ -45,10 +62,10 @@ def main():
                         help='Write checksums for existing ZIPs and setup')
     args = parser.parse_args()
     dist = ROOT / "dist"
-    packages = [dist / "MA_OBS_MediaLink_v045_Windows_x64.zip",
+    packages = [dist / "MA_OBS_MediaLink_v046_Windows_x64.zip",
                 dist / "MA_OBS_MediaLink_MA042.zip"]
     if args.finalize_installer:
-        packages.append(dist / "MA_OBS_MediaLink_v045_Setup_x64.exe")
+        packages.append(dist / "MA_OBS_MediaLink_v046_Setup_x64.exe")
         for path in packages:
             if not path.is_file() or path.stat().st_size == 0:
                 raise FileNotFoundError(path)
@@ -58,17 +75,28 @@ def main():
     spec = json.loads(spec_file.read_text(encoding="utf-8"))
     dll = ROOT / f"OBS/Release/{PLUGIN}/bin/64bit/{PLUGIN}.dll"
     verify_x64_dll(dll)
+    verify_local_guide(ROOT / f'OBS/Release/{PLUGIN}/data/ma-paket')
     common = [(ROOT / name, name) for name in
               ("LICENSE", "CHANGELOG.md", "THIRD_PARTY.md", "OBS/dependencies.json")]
     windows = common + [
         (dll, f"{PLUGIN}/bin/64bit/{PLUGIN}.dll"),
         (ROOT / f"OBS/Release/{PLUGIN}/data/crossfade.effect", f"{PLUGIN}/data/crossfade.effect"),
+        (ROOT / f"OBS/Release/{PLUGIN}/data/medialink.ico", f"{PLUGIN}/data/medialink.ico"),
         (ROOT / "docs/WINDOWS_ZIP.md", "README.md"),
         (ROOT / "OBS/README.md", "OBS/README.md"),
         (ROOT / "docs/BUILD.md", "docs/BUILD.md"),
         (ROOT / "docs/WINDOWS_ZIP.md", "docs/WINDOWS_ZIP.md"),
         (ROOT / "docs/WINDOWS_INSTALLER.md", "docs/WINDOWS_INSTALLER.md"),
     ]
+    for relative in (
+        'START_HIER.html', 'grandMA3/MA3/MA_OBS_MediaLink.xml',
+        'grandMA3/MA3/MA_OBS_MediaLink.lua', 'grandMA3/README_START_HIER.md',
+        'grandMA3/REFERENZEN.md', 'fixtures/MA_OBS_MediaLink_Fade.gdtf',
+        'fixtures/MA_OBS_MediaLink_Steuerung.gdtf', 'fixtures/README.md',
+        'OBS/README.md', 'docs/WINDOWS_INSTALLER.md', 'docs/WINDOWS_ZIP.md', 'docs/BUILD.md',
+        'LICENSE', 'THIRD_PARTY.md'):
+        windows.append((ROOT / f'OBS/Release/{PLUGIN}/data/ma-paket/{relative}',
+                        f'{PLUGIN}/data/ma-paket/{relative}'))
     ma = common + [(ROOT / name, name) for name in (
         "grandMA3/MA3/MA_OBS_MediaLink.xml", "grandMA3/MA3/MA_OBS_MediaLink.lua",
         "grandMA3/README_START_HIER.md", "grandMA3/REFERENZEN.md",
@@ -78,7 +106,7 @@ def main():
         if not source.is_file():
             raise FileNotFoundError(source)
     metadata = {
-        "obsPluginVersion": "0.45.0", "maPluginVersion": "0.42",
+        "obsPluginVersion": "0.46.0", "maPluginVersion": "0.42",
         "obsSdkVersion": spec["obsVersion"], "qtVersion": spec["qtVersion"],
         "architecture": spec["architecture"],
         "revision": os.environ.get("MEDIALINK_REVISION", "local-unversioned"),

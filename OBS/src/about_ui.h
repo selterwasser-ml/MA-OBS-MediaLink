@@ -1,6 +1,36 @@
 // Included inside plugin.cpp's namespace; image bytes are embedded by Qt rcc.
 #pragma once
 #include "about_secret.h"
+static void ma_open_local_package(QWidget *parent) {
+    char *path=obs_module_file("ma-paket");
+    const QString folder=QString::fromUtf8(path?path:"");
+    bfree(path);
+    if (folder.isEmpty() || !QDir(folder).exists()) {
+        QMessageBox::information(parent,"MA OBS MediaLink",
+            "Das lokale MA-Paket wurde nicht gefunden. Bitte das aktuelle MediaLink-Setup installieren.");
+        return;
+    }
+    if (!QDesktopServices::openUrl(QUrl::fromLocalFile(folder)))
+        QMessageBox::warning(parent,"MA OBS MediaLink","Der MA-Paketordner konnte nicht geöffnet werden.\n"+folder);
+}
+
+static void ma_add_about_identity(QWidget *about,QVBoxLayout *layout) {
+    auto *logo=new QLabel(about);
+    const QPixmap image(QStringLiteral(":/ma-obs-medialink/medialink-logo.png"));
+    logo->setPixmap(image.scaled(160,140,Qt::KeepAspectRatio,Qt::SmoothTransformation));
+    logo->setAccessibleName("MA OBS MediaLink Logo");
+    layout->addWidget(logo,0,Qt::AlignLeft);
+}
+
+static void ma_add_repository_button(QWidget *about,QVBoxLayout *layout) {
+    auto *repository=new QPushButton("GitHub-Repository öffnen",about);
+    QObject::connect(repository,&QPushButton::clicked,about,[about] {
+        if (!QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/selterwasser-ml/MA-OBS-MediaLink"))))
+            QMessageBox::warning(about,"MA OBS MediaLink","Das GitHub-Repository konnte nicht im Browser geöffnet werden.");
+    });
+    layout->addWidget(repository);
+}
+
 class MACatPhotoView : public QWidget {
     QPixmap photo{QStringLiteral(":/ma-obs-medialink/cats_farin_bela.png")};
 protected:

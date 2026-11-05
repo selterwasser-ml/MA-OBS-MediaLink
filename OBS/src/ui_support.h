@@ -1,4 +1,4 @@
-// MA OBS MediaLink v0.45 BETA. Frontend-thread display helpers only.
+// MA OBS MediaLink v0.46 BETA. Frontend-thread display helpers only.
 #pragma once
 
 static QString ma_ui_state_path() {

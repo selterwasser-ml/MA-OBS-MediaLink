@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/ma-obs-medialink">
     <file alias="cats_farin_bela.png">cats_farin_bela.png</file>
+    <file alias="medialink-logo.png">medialink-logo.png</file>
   </qresource>
 </RCC>

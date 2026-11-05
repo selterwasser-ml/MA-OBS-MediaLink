@@ -1,6 +1,16 @@
-# MA OBS MediaLink v0.45 · BETA
+# MA OBS MediaLink v0.46 · BETA
 
 MA OBS MediaLink steuert OBS-Szenen, Video und Audio über grandMA3.
+
+## Neu in v0.46
+
+Bei einer frischen Einrichtung ist **Universum 1** voreingestellt. Für Multicast gilt **Automatisch (Windows-Standard)**; bei mehreren Netzwerkkarten kannst du die passende IPv4-Schnittstelle auswählen oder eine lokale IPv4-Adresse eingeben. Vorhandene gespeicherte Verbindungswerte werden beim Update nicht überschrieben. „Automatisch“ verwendet eine Windows-Standardschnittstelle und bedeutet nicht, dass alle Netzwerkkarten gleichzeitig beigetreten werden.
+
+Im Tab **Allgemein** öffnet **MA-Paket und Anleitungen öffnen** den lokalen Ordner mit dem unveränderten MA-Plugin v0.42, beiden GDTF-Profilen und der Offline-Startseite `START_HIER.html`. Das Setup aktualisiert die mitgelieferten Dateien; ein Import in grandMA3 erfolgt weiterhin von Hand.
+
+Im Tab **Über** findest du das Projektlogo und **GitHub-Repository öffnen**. Die bisherige Widmung und das Foto bleiben erhalten.
+
+Bei der Deinstallation kannst du zusätzlich deine MediaLink-Einstellungen löschen lassen. Standardmäßig bleiben sie für eine spätere Neuinstallation erhalten. Windows-Konto und Einstellungsordner werden in der Abfrage angezeigt; andere Benutzerprofile, OBS-Szenen und andere Plugins werden nicht bereinigt.
 
 ## Alte Crossfade-Quelle
 
@@ -67,19 +77,13 @@ Ein Klick auf Farin und anschließend auf Bela in der Widmung öffnet das unver�
 
 ## Installation
 
-Für eine fertige DLL den [automatischen Windows-Build](../docs/BUILD.md) verwenden und anschließend die [ZIP-Installationsanleitung](../docs/WINDOWS_ZIP.md) befolgen. Zum lokalen Bauen werden Visual Studio 2026 mit C++-Werkzeugen und CMake ab 3.28 benötigt. PowerShell im entpackten OBS-Ordner öffnen:
+Für die normale Installation das [Windows-Setup](../docs/WINDOWS_INSTALLER.md) aus dem [automatischen Windows-Build](../docs/BUILD.md) verwenden. Alternativ gilt die [ZIP-Installationsanleitung](../docs/WINDOWS_ZIP.md). Zum lokalen Bauen werden Visual Studio 2026 mit C++-Werkzeugen und CMake ab 3.28 benötigt. PowerShell im entpackten OBS-Ordner öffnen:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Build_OBS33_Release.ps1"
 ```
 
-Nach erfolgreichem Build OBS vollständig schließen und installieren:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Install_Release.ps1"
-```
-
-Danach OBS neu starten. Das Installationsskript sichert vorhandene Plugin-Dateien. Interne DLL-, Quellen-, Dock- und Konfigurationskennungen bleiben kompatibel. Die vorhandene grandMA3-Bridge v0.42 bleibt verwendbar; für dieses Paket ist dort kein Update erforderlich.
+Nach erfolgreichem Build das vollständige Release-Paket nach ZIP-Anleitung installieren oder das Setup bauen und ausführen. Das ältere Entwicklerskript `Install_Release.ps1` tauscht nur DLL und Shader aus; es ersetzt keine vollständige v0.46-Installation mit lokalem MA-Paket und Logo. Interne DLL-, Quellen-, Dock- und Konfigurationskennungen bleiben kompatibel. Die vorhandene grandMA3-Bridge v0.42 bleibt verwendbar; für dieses Paket ist dort kein MA-Codeupdate erforderlich.
 
 ## Prüfstand
 

@@ -2,7 +2,7 @@
 
 Szenen, Video und Audio aus grandMA3 steuern.
 
-Ein Plugin mit den Bereichen Betrieb, Einrichtung, Presets, Steuersequenz, Diagnose und Über. Diese Version gehört zum gemeinsamen Paket mit OBS v0.45 und den beiden mitgelieferten Fixtureprofilen.
+Ein Plugin mit den Bereichen Betrieb, Einrichtung, Presets, Steuersequenz, Diagnose und Über. Diese unveränderte MA-Version gehört zu den Paketen mit OBS v0.45 und v0.46 sowie den beiden mitgelieferten Fixtureprofilen.
 
 Copyright © 2026 Oliver Cassel
 

@@ -58,14 +58,27 @@ jobs:
         run: python tools/build_packages.py
       - name: Windows-Installer bauen
         run: ./installer/Build_Installer.ps1
+      - name: Veroeffentlichte v0.45 fuer den Updatetest laden
+        if: github.repository == 'selterwasser-ml/MA-OBS-MediaLink'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.45.0-beta.1 --repo selterwasser-ml/MA-OBS-MediaLink --pattern MA_OBS_MediaLink_v045_Setup_x64.exe --dir "$env:RUNNER_TEMP/medialink-prev"
+          if ($LASTEXITCODE -ne 0) { throw 'Bisherige Beta konnte nicht geladen werden.' }
       - name: Installer auf dem Testrechner pruefen
-        run: ./installer/Test_Installer.ps1
+        run: |
+          $previousSetup = "$env:RUNNER_TEMP/medialink-prev/MA_OBS_MediaLink_v045_Setup_x64.exe"
+          if (Test-Path -LiteralPath $previousSetup) {
+            ./installer/Test_Installer.ps1 -PreviousSetup $previousSetup
+          } else {
+            ./installer/Test_Installer.ps1
+          }
       - name: Pruefsummen inklusive Setup erzeugen
         run: python tools/build_packages.py --finalize-installer
       - name: Pakete zum Herunterladen bereitstellen
         uses: actions/upload-artifact@v4
         with:
-          name: MA-OBS-MediaLink-v045-MA042-windows-x64
+          name: MA-OBS-MediaLink-v046-MA042-windows-x64
           path: |
             dist/*.zip
             dist/*_Setup_x64.exe

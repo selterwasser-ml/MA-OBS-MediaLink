@@ -11,7 +11,7 @@ $dll = Join-Path $repo 'OBS\Release\obs-sacn-crossfade\bin\64bit\obs-sacn-crossf
 if ((Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash -ne $info.dllSha256) {
     throw 'DLL und BUILD-INFO.json passen nicht zusammen. Pakete erneut erzeugen.'
 }
-if ($info.obsPluginVersion -ne '0.45.0' -or $info.obsSdkVersion -ne '33.0.0') {
+if ($info.obsPluginVersion -ne '0.46.0' -or $info.obsSdkVersion -ne '33.0.0') {
     throw 'Installer-Version und Paketinformationen passen nicht zusammen.'
 }
 New-Item -ItemType Directory -Path $CompilerRoot -Force | Out-Null

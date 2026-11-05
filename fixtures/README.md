@@ -11,12 +11,12 @@ Die beiden Profile stammen aus dem bisherigen Zwei-Fixture-Paket. Ihre Namen und
 
 Das Fade-Fixture auf die in OBS eingestellte Startadresse patchen. Das separate Steuer-Fixture beginnt drei Kanäle später. Beide müssen im selben Universum liegen. Der gesamte Zehn-Kanal-Block muss hineinpassen; die Startadresse kann 1 bis 503 sein.
 
-Beispiel bei Universum 12 und Startadresse 1:
+Beispiel bei Universum 1 und Startadresse 1 (neue OBS-Standardeinstellung ab v0.46):
 
 | Fixture | Startadresse | Belegung |
 | --- | --- | --- |
-| Fade-Fixture | 12.001 | 12.001–003 |
-| Steuer-Fixture | 12.004 | 12.004–010 |
+| Fade-Fixture | 1.001 | 1.001–003 |
+| Steuer-Fixture | 1.004 | 1.004–010 |
 
 Die Fixture-IDs sind frei wählbar und werden unter Einrichtung im MA-Plugin angegeben. Die Profile selbst schreiben keine Fixture-ID vor. Die Diagnose prüft Attribute, Auflösung und Patch. Das Steuer-Fixture für MediaLink reservieren; der als Endwert verwendete Dimmer ist zusätzlich auf mögliche Master-/Blackout-Einflüsse in der konkreten Show zu prüfen.
 

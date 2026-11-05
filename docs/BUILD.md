@@ -5,14 +5,14 @@
 1. Die geänderten Dateien einschließlich `.github/workflows/windows-build.yml` in das bestehende Repository hochladen und den Commit speichern. Die Ordnerstruktur muss erhalten bleiben.
 2. Im Repository **Actions → Tests und Windows-Build** öffnen. Der Upload startet den Ablauf automatisch. Falls GitHub zunächst das Aktivieren von Actions verlangt, diese aktivieren. Danach lässt sich der Ablauf über **Run workflow** auf dem Standardbranch erneut starten.
 3. Erst läuft **Steuerungs- und MA-Tests**, dann **Windows x64 / OBS 33**. Beim ersten Durchlauf werden größere Abhängigkeiten heruntergeladen und die OBS-Bibliotheken gebaut. Das kann mehrere Minuten dauern.
-4. Nach einem grünen Durchlauf unten unter **Artifacts** das Paket **MA-OBS-MediaLink-v045-MA042-windows-x64** herunterladen. Zum Download bei GitHub angemeldet bleiben. Die Bereitstellung ist auf 30 Tage begrenzt; ein späterer Build erzeugt sie erneut.
+4. Nach einem grünen Durchlauf unten unter **Artifacts** das Paket **MA-OBS-MediaLink-v046-MA042-windows-x64** herunterladen. Zum Download bei GitHub angemeldet bleiben. Die Bereitstellung ist auf 30 Tage begrenzt; ein späterer Build erzeugt sie erneut.
 
 Das heruntergeladene GitHub-Archiv enthält:
 
 | Datei | Inhalt |
 | --- | --- |
-| `MA_OBS_MediaLink_v045_Setup_x64.exe` | Windows-Installer mit Update und Deinstallation |
-| `MA_OBS_MediaLink_v045_Windows_x64.zip` | Fertige Plugin-DLL, Shader, Hinweise und Anleitung |
+| `MA_OBS_MediaLink_v046_Setup_x64.exe` | Windows-Installer mit Update und Deinstallation |
+| `MA_OBS_MediaLink_v046_Windows_x64.zip` | Fertige Plugin-DLL, Shader, Hinweise und Anleitung |
 | `MA_OBS_MediaLink_MA042.zip` | grandMA3-Importdateien, beide GDTF-Profile und MA-Anleitungen |
 | `SHA256SUMS.txt` | SHA256-Prüfsummen von Setup und beiden ZIP-Dateien |
 
@@ -57,8 +57,8 @@ Auf Ubuntu 24.04 mit Python 3.12, `g++` und `liblua5.4-0`:
 python tools/run_tests.py
 ```
 
-Der Aufruf führt alle zwölf mitgelieferten OBS-Testskripte aus, danach die MA-Tests und den Abgleich des eingebetteten Lua-Kerns mit der Importdatei. Die C++-Tests verwenden ihre vorhandenen OBS-/Qt-Testadapter und überwiegend AddressSanitizer/UndefinedBehaviorSanitizer. Das vollständige Plugin wird separat unter Windows kompiliert.
+Der Aufruf führt alle dreizehn mitgelieferten OBS-Testskripte aus, danach die MA-Tests und den Abgleich des eingebetteten Lua-Kerns mit der Importdatei. Die C++-Tests verwenden ihre vorhandenen OBS-/Qt-Testadapter und überwiegend AddressSanitizer/UndefinedBehaviorSanitizer. Der zusätzliche Verbindungstest prüft Universum 1, automatische Multicast-Vorgabe und den Erhalt gespeicherter Verbindungswerte. Das vollständige Plugin wird separat unter Windows kompiliert.
 
-`installer/Test_Installer.ps1` führt auf dem frischen GitHub-Windows-Runner die echte Setup-Datei aus. Ein künstliches x64-Programm mit OBS-33-Dateiversion prüft Ordnererkennung, portable Markierung, doppelte DLL, laufenden Prozess, Erstinstallation, Update, Deinstallation und Neuinstallation. Fremde Dateien müssen erhalten bleiben. Das Testskript verweigert die Ausführung auf einem normalen Arbeitsplatz oder einem Runner mit vorhandenem OBS/MediaLink. Es ersetzt keine Tests mit echtem OBS.
+`installer/Test_Installer.ps1` führt auf dem frischen GitHub-Windows-Runner die echte Setup-Datei aus. Ein künstliches x64-Programm mit OBS-33-Dateiversion prüft Ordnererkennung, portable Markierung, doppelte DLL, laufenden Prozess, Erstinstallation, MA-Paket-Update, Deinstallation und Neuinstallation mit erhaltenen sowie ausdrücklich gelöschten Einstellungen. Fremde Dateien, andere Plugin-Konfigurationen und Verzeichnisverknüpfungs-Ziele müssen erhalten bleiben. Im Projekt-Repository lädt der Workflow zusätzlich den veröffentlichten v0.45-Installer mit festgelegter Prüfsumme und prüft das echte Versionsupdate auf v0.46. Das Testskript verweigert die Ausführung auf einem normalen Arbeitsplatz oder einem Runner mit vorhandenem OBS/MediaLink. Es ersetzt keine Tests mit echtem OBS.
 
 Ich habe den bisherigen Praxistest mit OBS 33.0.1 und grandMA3 2.5.0.3 sowie die Installation auf einem zweiten Rechner ohne Entwicklerwerkzeuge erfolgreich durchgeführt. Auch die erneute Installation desselben Pakets und die bisherigen Deinstallations-/Einstellungsprüfungen waren erfolgreich. Ein Update von jeder älteren Pluginversion habe ich nicht einzeln getestet. Meine Tests gelten für den verwendeten Aufbau; weitere Versionen und Hardwarekombinationen müssen separat geprüft werden. Anleitung für das Setup: [WINDOWS_INSTALLER.md](WINDOWS_INSTALLER.md). Vorbereitung der geprüften Beta-Dateien: [BETA_RELEASE.md](BETA_RELEASE.md).

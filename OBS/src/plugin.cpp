@@ -2,6 +2,7 @@
 #include "cue_math.h"
 #include "live_audio_policy.h"
 #include "settings_policy.h"
+#include "connection_defaults.h"
 #include <util/platform.h>
 #include <graphics/graphics.h>
 #include <winsock2.h>
@@ -70,10 +71,13 @@
 #include <QDateTime>
 #include <QFrame>
 #include <QPalette>
+#include <QDesktopServices>
+#include <QDir>
+#include <QUrl>
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE("obs-sacn-crossfade", "en-US")
-MODULE_EXPORT const char *obs_module_description(void) { return "MA OBS MediaLink – Szenen, Video und Audio aus grandMA3 steuern (v0.45 BETA)"; }
+MODULE_EXPORT const char *obs_module_description(void) { return "MA OBS MediaLink – Szenen, Video und Audio aus grandMA3 steuern (v0.46 BETA)"; }
 
 namespace {
 static bool ma_obs_exiting=false;
@@ -106,10 +110,10 @@ struct Receiver {
     CueFrame cue_frame;
     bool cue_mode=false;
     std::thread worker;
-    uint16_t universe = 10;
+    uint16_t universe = maobs::default_universe;
     uint16_t address = 1;
     std::string bind_ip = "0.0.0.0";
-    std::string multicast_interface = "192.168.1.71";
+    std::string multicast_interface = maobs::automatic_multicast_interface;
     bool multicast = false;
     // All settings are copied into the worker before start: no thread reads
     // strings while OBS may replace them in update().
@@ -509,7 +513,7 @@ static obs_properties_t *properties(void *data) {
     obs_property_list_add_string(mode, "Unicast", "unicast");
     obs_property_list_add_string(mode, "Multicast", "multicast");
     obs_properties_add_text(p, "bind_ip", "Unicast bind IPv4 (0.0.0.0 = all)", OBS_TEXT_DEFAULT);
-    obs_properties_add_text(p, "multicast_interface", "Multicast network card IPv4 (e.g. 192.168.1.71)", OBS_TEXT_DEFAULT);
+    obs_properties_add_text(p, "multicast_interface", "Multicast interface IPv4 (0.0.0.0 = automatic)", OBS_TEXT_DEFAULT);
     obs_properties_add_int(p, "width", "Output width", 16, 8192, 1);
     obs_properties_add_int(p, "height", "Output height", 16, 8192, 1);
     return p;
@@ -517,13 +521,13 @@ static obs_properties_t *properties(void *data) {
 static void defaults(obs_data_t *d) {
     obs_data_set_default_bool(d, "wrap_around", false);
     obs_data_set_default_string(d, "control_type", "playlist");
-    obs_data_set_default_int(d, "universe", 10);
+    obs_data_set_default_int(d, "universe", maobs::default_universe);
     obs_data_set_default_int(d, "address", 1);
     obs_data_set_default_int(d, "width", 1920);
     obs_data_set_default_int(d, "height", 1080);
     obs_data_set_default_string(d, "bind_ip", "0.0.0.0");
     obs_data_set_default_string(d, "network_mode", "unicast");
-    obs_data_set_default_string(d, "multicast_interface", "192.168.1.71");
+    obs_data_set_default_string(d, "multicast_interface", maobs::automatic_multicast_interface);
 }
 // All live source pointers are protected by this registry mutex.
 static std::mutex registry_mutex;
@@ -1259,11 +1263,11 @@ static std::string native_config_path() {
 static obs_data_t *native_defaults() {
     obs_data_t *d = obs_data_create();
     obs_data_set_string(d, "control_type", "cue");
-    obs_data_set_int(d, "universe", 12);
+    obs_data_set_int(d, "universe", maobs::default_universe);
     obs_data_set_int(d, "address", 1);
     obs_data_set_string(d, "network_mode", "unicast");
     obs_data_set_string(d, "bind_ip", "0.0.0.0");
-    obs_data_set_string(d, "multicast_interface", "192.168.1.71");
+    obs_data_set_string(d, "multicast_interface", maobs::automatic_multicast_interface);
     obs_data_set_int(d, "width", 1920);
     obs_data_set_int(d, "height", 1080);
     obs_data_set_string(d, "startup_mode", "last");
@@ -1275,11 +1279,11 @@ static obs_data_t *native_load() {
     if (!d) return native_defaults();
     // Defaults supply fields missing from older configuration files.
     obs_data_set_default_string(d, "control_type", "cue");
-    obs_data_set_default_int(d, "universe", 12);
+    obs_data_set_default_int(d, "universe", maobs::default_universe);
     obs_data_set_default_int(d, "address", 1);
     obs_data_set_default_string(d, "network_mode", "unicast");
     obs_data_set_default_string(d, "bind_ip", "0.0.0.0");
-    obs_data_set_default_string(d, "multicast_interface", "192.168.1.71");
+    obs_data_set_default_string(d, "multicast_interface", maobs::automatic_multicast_interface);
     obs_data_set_default_int(d, "width", 1920);
     obs_data_set_default_int(d, "height", 1080);
     obs_data_set_default_string(d, "startup_mode", "last");
@@ -1299,6 +1303,46 @@ static bool should_autostart() {
     return read_pilot_preference();
 }
 static void native_settings_dialog(void *) { ma_settings_dialog(); }
+
+static QComboBox *ma_create_multicast_interfaces(const QString &stored,QWidget *parent) {
+    auto *combo=new QComboBox(parent);
+    combo->setEditable(true);
+    combo->setInsertPolicy(QComboBox::NoInsert);
+    combo->addItem("Automatisch (Windows-Standard)",maobs::automatic_multicast_interface);
+    ULONG size=16384;
+    std::vector<unsigned char> memory(size);
+    const ULONG flags=GAA_FLAG_SKIP_ANYCAST|GAA_FLAG_SKIP_MULTICAST|GAA_FLAG_SKIP_DNS_SERVER;
+    auto *adapters=reinterpret_cast<IP_ADAPTER_ADDRESSES *>(memory.data());
+    ULONG result=GetAdaptersAddresses(AF_INET,flags,nullptr,adapters,&size);
+    if (result==ERROR_BUFFER_OVERFLOW) {
+        memory.resize(size);adapters=reinterpret_cast<IP_ADAPTER_ADDRESSES *>(memory.data());
+        result=GetAdaptersAddresses(AF_INET,flags,nullptr,adapters,&size);
+    }
+    if (result==NO_ERROR) for(auto *adapter=adapters;adapter;adapter=adapter->Next) {
+        if (adapter->OperStatus!=IfOperStatusUp || adapter->IfType==IF_TYPE_SOFTWARE_LOOPBACK) continue;
+        for(auto *unicast=adapter->FirstUnicastAddress;unicast;unicast=unicast->Next) {
+            if (!unicast->Address.lpSockaddr || unicast->Address.lpSockaddr->sa_family!=AF_INET) continue;
+            const auto *address=reinterpret_cast<const sockaddr_in *>(unicast->Address.lpSockaddr);
+            char text[INET_ADDRSTRLEN]{};
+            if (!InetNtopA(AF_INET,const_cast<in_addr *>(&address->sin_addr),text,sizeof(text))) continue;
+            const QString ip=QString::fromLatin1(text);
+            if (combo->findData(ip)>=0) continue;
+            const QString name=QString::fromWCharArray(adapter->FriendlyName?adapter->FriendlyName:L"");
+            combo->addItem(name.isEmpty()?ip:name+" · "+ip,ip);
+        }
+    }
+    const QString value=stored.isEmpty()?QString::fromLatin1(maobs::automatic_multicast_interface):stored;
+    int index=combo->findData(value);
+    if (index<0) {combo->addItem(value+" (gespeichert)",value);index=combo->count()-1;}
+    combo->setCurrentIndex(index);
+    return combo;
+}
+static QString ma_multicast_interface_value(const QComboBox *combo) {
+    const QString text=combo->currentText().trimmed();
+    const int index=combo->currentIndex();
+    if (index>=0 && text==combo->itemText(index)) return combo->itemData(index).toString();
+    return text.isEmpty()?QString::fromLatin1(maobs::automatic_multicast_interface):text;
+}
 
 static void ma_add_native_pages(QDialog *dialog,QTabWidget *tabs,std::function<bool()> &save) {
     auto config=std::shared_ptr<obs_data_t>(native_load(),[](obs_data_t *d) {obs_data_release(d);});
@@ -1333,7 +1377,11 @@ static void ma_add_native_pages(QDialog *dialog,QTabWidget *tabs,std::function<b
         "Die MA steuert Szenenübergänge sowie die konfigurierten Video- und Audioregeln.\n\n"
         "Die Schaltfläche aktiviert/deaktiviert die Steuerung sofort; Abbrechen nimmt diese Aktion nicht zurück. "
         "Änderungen an Startverhalten und Ausgabeauflösung werden erst mit Speichern übernommen.",general);
-    usage->setWordWrap(true); general_layout->addWidget(usage); general_layout->addStretch();
+    usage->setWordWrap(true); general_layout->addWidget(usage);
+    auto *package_button=new QPushButton("MA-Paket und Anleitungen öffnen",general);
+    package_button->setToolTip("Öffnet die lokal installierten Fixtures, das grandMA3-Plugin und die Anleitung.");
+    QObject::connect(package_button,&QPushButton::clicked,dialog,[dialog] {ma_open_local_package(dialog);});
+    general_layout->addWidget(package_button); general_layout->addStretch();
     tabs->addTab(general,"Allgemein");
     auto *connection=new QWidget(tabs);
     auto *connection_layout=new QVBoxLayout(connection);
@@ -1349,20 +1397,23 @@ static void ma_add_native_pages(QDialog *dialog,QTabWidget *tabs,std::function<b
     network->setCurrentIndex(std::strcmp(obs_data_get_string(config.get(),"network_mode"),"multicast")==0 ? 1 : 0);
     network_form->addRow("Empfangsmodus",network);
     auto *bind=new QLineEdit(QString::fromUtf8(obs_data_get_string(config.get(),"bind_ip")),connection);
-    auto *iface=new QLineEdit(QString::fromUtf8(obs_data_get_string(config.get(),"multicast_interface")),connection);
+    auto *iface=ma_create_multicast_interfaces(QString::fromUtf8(obs_data_get_string(config.get(),"multicast_interface")),connection);
     network_form->addRow("Unicast Bind-IP",bind);
     auto *bind_help=new QLabel("Lokale IPv4-Adresse des OBS-Rechners (Empfänger), nicht die IP der MA. "
         "0.0.0.0 empfängt auf allen lokalen IPv4-Adressen. In der MA ist die Ziel-IP die Adresse dieses OBS-Rechners.",connection);
     bind_help->setWordWrap(true); network_form->addRow("",bind_help);
-    network_form->addRow("Multicast Interface-IP",iface);
+    network_form->addRow("Multicast-Netzwerkkarte",iface);
+    auto *iface_help=new QLabel("Automatisch verwendet die Windows-Standardnetzwerkkarte für Multicast. "
+        "Bei mehreren Netzwerkkarten die passende Schnittstelle auswählen oder ihre lokale IPv4-Adresse eingeben.",connection);
+    iface_help->setWordWrap(true);network_form->addRow("",iface_help);
     const auto update_network_fields=[=] {
         const bool multicast=network->currentData().toString()=="multicast";
         bind->setEnabled(!multicast);bind_help->setEnabled(!multicast);
-        iface->setEnabled(multicast);
+        iface->setEnabled(multicast);iface_help->setEnabled(multicast);
         if (auto *label=network_form->labelForField(bind)) label->setEnabled(!multicast);
         if (auto *label=network_form->labelForField(iface)) label->setEnabled(multicast);
         bind->setToolTip(multicast ? "Wird nur bei Unicast verwendet." : "Lokale IPv4-Adresse des OBS-Rechners.");
-        iface->setToolTip(multicast ? "Lokale IPv4-Adresse der Netzwerkkarte für Multicast." : "Wird nur bei Multicast verwendet.");
+        iface->setToolTip(multicast ? "Automatisch (0.0.0.0) oder lokale IPv4-Adresse der Multicast-Netzwerkkarte." : "Wird nur bei Multicast verwendet.");
     };
     QObject::connect(network,&QComboBox::currentIndexChanged,dialog,[=](int) {update_network_fields();});
     update_network_fields();
@@ -1380,7 +1431,7 @@ static void ma_add_native_pages(QDialog *dialog,QTabWidget *tabs,std::function<b
     connection_layout->addStretch();
     tabs->addTab(connection,"Verbindung");
     save=[=]() -> bool {
-        const QString bind_ip=bind->text().trimmed(), interface_ip=iface->text().trimmed();
+        const QString bind_ip=bind->text().trimmed(), interface_ip=ma_multicast_interface_value(iface);
         in_addr parsed{};
         const QString active_ip=network->currentData().toString()=="multicast" ? interface_ip : bind_ip;
         const auto bytes=active_ip.toUtf8();
@@ -1539,7 +1590,7 @@ static bool pilot_start(bool interactive) {
     p.replaced = false;
     pilot_ui_active.store(true);
     pilot_ui_output_owned.store(true);
-    blog(LOG_WARNING, "MA OBS MA-Steuerung v0.45: EXPERIMENTAL transition-wrapper channel 0 active");
+    blog(LOG_WARNING, "MA OBS MA-Steuerung v0.46: EXPERIMENTAL transition-wrapper channel 0 active");
 
     p.status_timer = new QTimer();
     QObject::connect(p.status_timer, &QTimer::timeout, [] {
@@ -1713,7 +1764,7 @@ bool obs_module_load(void) {
     ma_video_runtime_timer->start(50);
     obs_frontend_add_event_callback(pilot_frontend_event, nullptr);
     monitor_dock = new MonitorDock();
-    if (!obs_frontend_add_dock_by_id("ma-sacn-crossfade-monitor", "MA OBS MediaLink · v0.45 BETA", monitor_dock.data())) {
+    if (!obs_frontend_add_dock_by_id("ma-sacn-crossfade-monitor", "MA OBS MediaLink · v0.46 BETA", monitor_dock.data())) {
         delete monitor_dock.data();
         monitor_dock = nullptr;
         blog(LOG_WARNING, "MA Crossfade: could not create monitor dock");

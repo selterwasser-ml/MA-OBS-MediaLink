@@ -1,4 +1,4 @@
-// MA OBS MediaLink v0.45 BETA. Included inside plugin.cpp's namespace.
+// MA OBS MediaLink v0.46 BETA. Included inside plugin.cpp's namespace.
 #pragma once
 class MonitorDock final : public QWidget {
     QLabel *connection=nullptr, *program_label=nullptr, *pilot_status_label=nullptr;
@@ -47,7 +47,7 @@ class MonitorDock final : public QWidget {
         scene_mapping->horizontalScrollBar()->setValue(h);
     }
     QString diagnostic_text() const {
-        return QString("MA OBS MediaLink v0.45 BETA\n%1\n%2\n%3\n%4\n\nSzenenzuordnung:\n%5\n\n%6\n%7\n%8\n%9")
+        return QString("MA OBS MediaLink v0.46 BETA\n%1\n%2\n%3\n%4\n\nSzenenzuordnung:\n%5\n\n%6\n%7\n%8\n%9")
             .arg(program_label->text()).arg(pilot_status_label->text()).arg(signal_status->text())
             .arg(target_label->text()).arg(scene_mapping->toPlainText()).arg(connection->text())
             .arg(current->text()).arg(prepared->text()).arg(banks->text())+"\n\n"+ma_audio_diagnostic_text();

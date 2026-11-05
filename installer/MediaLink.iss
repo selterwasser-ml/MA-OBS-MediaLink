@@ -8,13 +8,14 @@
 [Setup]
 AppId=MA_OBS_MediaLink_OBS_x64
 AppName=MA OBS MediaLink
-AppVersion=0.45.0
-AppVerName=MA OBS MediaLink v0.45 BETA
+AppVersion=0.46.0
+AppVerName=MA OBS MediaLink v0.46 BETA
 AppPublisher=Oliver Cassel
 AppPublisherURL=https://github.com/selterwasser-ml/MA-OBS-MediaLink
 AppSupportURL=https://github.com/selterwasser-ml/MA-OBS-MediaLink/issues
-VersionInfoVersion=0.45.0.1
+VersionInfoVersion=0.46.0.1
 VersionInfoDescription=MA OBS MediaLink Setup
+SetupIconFile={#RepoRoot}\OBS\data\medialink.ico
 DefaultDirName={commonappdata}\obs-studio\plugins\{#PluginName}
 UsePreviousAppDir=no
 DisableDirPage=yes
@@ -25,7 +26,7 @@ ArchitecturesInstallIn64BitMode=x64os
 MinVersion=10.0
 LicenseFile={#RepoRoot}\LICENSE
 OutputDir={#RepoRoot}\dist
-OutputBaseFilename=MA_OBS_MediaLink_v045_Setup_x64
+OutputBaseFilename=MA_OBS_MediaLink_v046_Setup_x64
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -33,7 +34,8 @@ SetupMutex=MA_OBS_MediaLink_Setup
 CloseApplications=no
 RestartApplications=no
 RestartIfNeededByRun=no
-UninstallDisplayName=MA OBS MediaLink v0.45 BETA
+UninstallDisplayName=MA OBS MediaLink v0.46 BETA
+UninstallDisplayIcon={app}\data\medialink.ico
 UninstallFilesDir={app}\uninstall
 UninstallLogMode=append
 
@@ -51,7 +53,15 @@ german.PortableOBS=Diese OBS-Installation ist als portabel markiert. Bitte eine 
 german.RunningOBS=OBS ist noch geöffnet. Bitte OBS vollständig schließen und den Vorgang erneut starten.
 german.ProcessError=Die Prüfung auf laufendes OBS ist fehlgeschlagen. Windows neu starten und den Vorgang erneut versuchen.
 german.DuplicateOBS=Es gibt bereits eine MediaLink-DLL in einem anderen OBS-Pluginordner. Bitte diese Kopie zuerst sichern und entfernen: %1
-german.Finished=MediaLink wurde installiert. Starte OBS und öffne Werkzeuge > MA OBS MediaLink. Das passende grandMA3- und Fixture-Paket wird separat bereitgestellt.
+german.Finished=MediaLink wurde installiert. Starte OBS und öffne Werkzeuge > MA OBS MediaLink. Im Tab Allgemein findest du MA-Paket und Anleitungen öffnen.
+german.RemoveTitle=MA OBS MediaLink deinstallieren
+german.RemoveIntro=Die Programmdateien und das mitgelieferte MA-Paket werden entfernt. Deine OBS-Szenen, Profile und anderen Plugins bleiben erhalten.
+german.DeleteSettings=MediaLink-Einstellungen ebenfalls löschen
+german.SettingsAccount=Betroffenes Windows-Konto: %1%nEinstellungsordner: %2
+german.KeepSettings=Ohne Häkchen bleiben deine MediaLink-Regeln und Einstellungen für eine spätere Neuinstallation erhalten.
+german.ContinueRemove=Weiter
+german.CancelRemove=Abbrechen
+german.SettingsError=Die MediaLink-Einstellungen konnten nicht vollständig entfernt werden. Bitte diesen Ordner nach dem Schließen von OBS prüfen:%n%1
 english.OBSPage=OBS installation
 english.OBSDescription=Select your standard OBS Studio installation folder.
 english.OBSHelp=Requires OBS Studio 33 for Windows x64. Select the main folder, for example C:\Program Files\obs-studio. Portable OBS installations are not supported by this setup.
@@ -61,15 +71,40 @@ english.PortableOBS=This OBS installation is marked as portable. Please select a
 english.RunningOBS=OBS is still running. Close OBS completely and start this operation again.
 english.ProcessError=Could not check for running OBS. Restart Windows and try again.
 english.DuplicateOBS=A MediaLink DLL already exists in another OBS plugin folder. Back up and remove that copy first: %1
-english.Finished=MediaLink has been installed. Start OBS and open Tools > MA OBS MediaLink. The matching grandMA3 and fixture package is provided separately.
+english.Finished=MediaLink has been installed. Start OBS and open Tools > MA OBS MediaLink. The General tab opens the installed MA package and guides.
+english.RemoveTitle=Uninstall MA OBS MediaLink
+english.RemoveIntro=The program files and bundled MA package will be removed. Your OBS scenes, profiles and other plugins will be kept.
+english.DeleteSettings=Also delete MediaLink settings
+english.SettingsAccount=Windows account: %1%nSettings folder: %2
+english.KeepSettings=Leave this unchecked to keep your MediaLink rules and settings for a later installation.
+english.ContinueRemove=Continue
+english.CancelRemove=Cancel
+english.SettingsError=Could not remove all MediaLink settings. Close OBS and check this folder:%n%1
 
 [Messages]
 german.FinishedLabel={cm:Finished}
 english.FinishedLabel={cm:Finished}
+german.ConfirmUninstall=Soll %1 deinstalliert werden? Die Auswahl zu den gespeicherten Einstellungen wird dabei berücksichtigt.
+english.ConfirmUninstall=Uninstall %1? Your selection for saved settings will also be applied.
 
 [Files]
 Source: "{#RepoRoot}\OBS\Release\{#PluginName}\bin\64bit\{#PluginName}.dll"; DestDir: "{app}\bin\64bit"; Flags: ignoreversion
 Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\crossfade.effect"; DestDir: "{app}\data"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\medialink.ico"; DestDir: "{app}\data"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\START_HIER.html"; DestDir: "{app}\data\ma-paket"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\grandMA3\MA3\MA_OBS_MediaLink.xml"; DestDir: "{app}\data\ma-paket\grandMA3\MA3"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\grandMA3\MA3\MA_OBS_MediaLink.lua"; DestDir: "{app}\data\ma-paket\grandMA3\MA3"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\grandMA3\README_START_HIER.md"; DestDir: "{app}\data\ma-paket\grandMA3"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\grandMA3\REFERENZEN.md"; DestDir: "{app}\data\ma-paket\grandMA3"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\fixtures\MA_OBS_MediaLink_Fade.gdtf"; DestDir: "{app}\data\ma-paket\fixtures"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\fixtures\MA_OBS_MediaLink_Steuerung.gdtf"; DestDir: "{app}\data\ma-paket\fixtures"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\fixtures\README.md"; DestDir: "{app}\data\ma-paket\fixtures"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\OBS\README.md"; DestDir: "{app}\data\ma-paket\OBS"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\docs\WINDOWS_INSTALLER.md"; DestDir: "{app}\data\ma-paket\docs"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\docs\WINDOWS_ZIP.md"; DestDir: "{app}\data\ma-paket\docs"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\docs\BUILD.md"; DestDir: "{app}\data\ma-paket\docs"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\LICENSE"; DestDir: "{app}\data\ma-paket"; Flags: ignoreversion
+Source: "{#RepoRoot}\OBS\Release\{#PluginName}\data\ma-paket\THIRD_PARTY.md"; DestDir: "{app}\data\ma-paket"; Flags: ignoreversion
 Source: "{#RepoRoot}\LICENSE"; DestDir: "{app}\medialink-docs"; Flags: ignoreversion
 Source: "{#RepoRoot}\THIRD_PARTY.md"; DestDir: "{app}\medialink-docs"; Flags: ignoreversion
 Source: "{#RepoRoot}\CHANGELOG.md"; DestDir: "{app}\medialink-docs"; Flags: ignoreversion
@@ -92,6 +127,58 @@ type
 
 var
   OBSPage: TInputDirWizardPage;
+  DeleteUserSettings: Boolean;
+
+function MediaLinkSettingsPath: String;
+begin
+  Result := ExpandConstant('{userappdata}\obs-studio\plugin_config\{#PluginName}');
+end;
+
+function ChooseSettingsRemoval: Boolean;
+var
+  Form: TSetupForm;
+  Intro, Account, Keep: TNewStaticText;
+  Choice: TNewCheckBox;
+  ContinueButton, CancelButton: TNewButton;
+begin
+  DeleteUserSettings := False;
+  if UninstallSilent then begin
+    DeleteUserSettings := ExpandConstant('{param:DELETESETTINGS|0}') = '1';
+    Result := True;
+    exit;
+  end;
+  Form := CreateCustomForm(560, 295, False, True);
+  try
+    Form.Caption := CustomMessage('RemoveTitle');
+    Form.Position := poScreenCenter;
+    Intro := TNewStaticText.Create(Form); Intro.Parent := Form;
+    Intro.SetBounds(ScaleX(20), ScaleY(16), ScaleX(520), ScaleY(48));
+    Intro.AutoSize := False; Intro.WordWrap := True;
+    Intro.Caption := CustomMessage('RemoveIntro');
+    Choice := TNewCheckBox.Create(Form); Choice.Parent := Form;
+    Choice.SetBounds(ScaleX(20), ScaleY(76), ScaleX(520), ScaleY(26));
+    Choice.Caption := CustomMessage('DeleteSettings'); Choice.Checked := False;
+    Account := TNewStaticText.Create(Form); Account.Parent := Form;
+    Account.SetBounds(ScaleX(40), ScaleY(110), ScaleX(500), ScaleY(74));
+    Account.AutoSize := False; Account.WordWrap := True;
+    Account.Caption := FmtMessage(CustomMessage('SettingsAccount'), [GetUserNameString, MediaLinkSettingsPath]);
+    Keep := TNewStaticText.Create(Form); Keep.Parent := Form;
+    Keep.SetBounds(ScaleX(20), ScaleY(190), ScaleX(520), ScaleY(42));
+    Keep.AutoSize := False; Keep.WordWrap := True; Keep.Caption := CustomMessage('KeepSettings');
+    ContinueButton := TNewButton.Create(Form); ContinueButton.Parent := Form;
+    ContinueButton.SetBounds(ScaleX(340), ScaleY(250), ScaleX(95), ScaleY(27));
+    ContinueButton.Caption := CustomMessage('ContinueRemove');
+    ContinueButton.ModalResult := mrOk; ContinueButton.Default := True;
+    CancelButton := TNewButton.Create(Form); CancelButton.Parent := Form;
+    CancelButton.SetBounds(ScaleX(445), ScaleY(250), ScaleX(95), ScaleY(27));
+    CancelButton.Caption := CustomMessage('CancelRemove');
+    CancelButton.ModalResult := mrCancel; CancelButton.Cancel := True;
+    Result := Form.ShowModal = mrOk;
+    if Result then DeleteUserSettings := Choice.Checked;
+  finally
+    Form.Free;
+  end;
+end;
 
 function GetBinaryType(FileName: String; var BinaryType: LongWord): Boolean;
   external 'GetBinaryTypeW@kernel32.dll stdcall';
@@ -218,6 +305,7 @@ begin
     Log(Error);
     SuppressibleMsgBox(Error, mbError, MB_OK, IDOK);
   end;
+  if Result then Result := ChooseSettingsRemoval;
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
@@ -227,5 +315,14 @@ begin
   if CurUninstallStep = usUninstall then begin
     Error := CheckOBSStopped;
     if Error <> '' then RaiseException(Error);
+  end;
+  if (CurUninstallStep = usPostUninstall) and DeleteUserSettings and DirExists(MediaLinkSettingsPath) then begin
+    Error := CheckOBSStopped;
+    if Error = '' then
+      if not DelTree(MediaLinkSettingsPath, True, True, True) then Error := 'Settings folder could not be removed';
+    if Error <> '' then begin
+      Log('MediaLink settings removal incomplete: ' + MediaLinkSettingsPath);
+      SuppressibleMsgBox(FmtMessage(CustomMessage('SettingsError'), [MediaLinkSettingsPath]), mbError, MB_OK, IDOK);
+    end else Log('Deleted MediaLink settings: ' + MediaLinkSettingsPath);
   end;
 end;

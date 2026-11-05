@@ -23,7 +23,7 @@ $prefixParts = @(
 )
 foreach ($path in $prefixParts) { if (-not (Test-Path $path)) { throw "Abhaengigkeit fehlt: $path" } }
 $prefix = ($prefixParts -join ';').Replace('\', '/')
-Write-Host 'MA OBS MediaLink v0.45 - Windows x64 / OBS 33 build' -ForegroundColor Cyan
+Write-Host 'MA OBS MediaLink v0.46 - Windows x64 / OBS 33 build' -ForegroundColor Cyan
 & cmake --fresh -S $root -B $build -G $Generator -A x64 "-DCMAKE_PREFIX_PATH=$prefix"
 if ($LASTEXITCODE -ne 0) { throw 'CMake configure fehlgeschlagen.' }
 & cmake --build $build --config Release --parallel 1

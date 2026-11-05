@@ -1,6 +1,6 @@
-# MA OBS MediaLink v0.45 BETA · Windows x64
+# MA OBS MediaLink v0.46 BETA · Windows x64
 
-Dieses Paket enthält die fertige DLL für OBS Studio 33 (Windows x64) und den benötigten Shader. Als Alternative zum manuellen Kopieren wird ein separates [Windows-Setup](WINDOWS_INSTALLER.md) bereitgestellt. Der Build verwendet das SDK von OBS 33.0.0 und Qt 6.11.1. Ein erfolgreicher Build ersetzt keinen Test im eigenen OBS-Aufbau.
+Dieses Paket enthält die fertige DLL für OBS Studio 33 (Windows x64), den Shader, das Windows-Icon und den Ordner mit MA-Dateien und Anleitungen. Für eine normale Installation empfehle ich das separate [Windows-Setup](WINDOWS_INSTALLER.md). Der Build verwendet das SDK von OBS 33.0.0 und Qt 6.11.1. Ein erfolgreicher Build ersetzt keinen Test im eigenen OBS-Aufbau.
 
 ## Manuell installieren oder aktualisieren
 
@@ -12,6 +12,8 @@ Dieses Paket enthält die fertige DLL für OBS Studio 33 (Windows x64) und den b
 Keine zweite Kopie derselben Plugin-DLL in einem anderen OBS-Pluginordner installieren. Bei einer bisherigen Installation an einem anderen Ort zunächst deren Pluginpfad prüfen. Das ZIP-Verfahren ist für eine normale OBS-Installation gedacht; portable Installationen werden hier noch nicht abgedeckt.
 
 Das Kopieren ersetzt nur Plugin-Dateien. MediaLink-Regeln und OBS-Einstellungen bleiben in der vorhandenen OBS-Konfiguration. Diese Einstellungen vor dem ersten Test zusätzlich sichern. Das Foto von Farin und Bela ist bereits in der DLL eingebettet.
+
+Den vollständigen Pluginordner einschließlich `data/ma-paket` und `data/medialink.ico` kopieren. Unter **Allgemein → MA-Paket und Anleitungen öffnen** findest du die Offline-Startseite und die mitgelieferten MA-/Fixture-Dateien. Der Import in grandMA3 bleibt ein eigener Schritt. Der Über-Tab zeigt das freigegebene Logo und den Repository-Link. Bei einer frischen Konfiguration gelten Universum 1 und automatische Multicast-Auswahl; bereits gespeicherte Werte bleiben erhalten.
 
 Die ausführliche OBS-Anleitung liegt unter `OBS/README.md`. Das passende MA-Paket enthält die Importdateien für grandMA3 v0.42 und beide Fixtureprofile.
 
