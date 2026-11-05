@@ -97,7 +97,7 @@ class ReleasePreparationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'refusing to overwrite'):
                 release.require_draft({**draft, **changes}, self.spec, 'Notes')
 
-    def test_authorized_text_correction_changes_only_body(self):
+    def test_authorized_text_correction_preserves_identity_and_draft(self):
         old = {'id': 123, 'draft': True, 'prerelease': True, 'tag_name': self.spec['tag'],
                'target_commitish': self.spec['sourceCommit'], 'name': 'Beta', 'body': 'Old notes',
                'assets': [{'id': 7, 'name': 'setup.exe'}]}
@@ -106,7 +106,22 @@ class ReleasePreparationTests(unittest.TestCase):
         with patch.object(release, 'api_json', return_value=updated) as api:
             self.assertEqual(release.refresh_draft_notes(old, spec, 'New notes', 'repos/owner/repo'), updated)
             api.assert_called_once_with('repos/owner/repo/releases/123', method='PATCH',
-                                        data={'body': 'New notes'})
+                                        data={'body': 'New notes', 'tag_name': spec['tag'],
+                                              'target_commitish': spec['sourceCommit'],
+                                              'name': spec['title'], 'draft': True, 'prerelease': True})
+
+    def test_only_explicitly_selected_draft_tag_can_be_restored(self):
+        draft = {'id': 123, 'draft': True, 'prerelease': True, 'tag_name': 'untagged-known',
+                 'target_commitish': self.spec['sourceCommit'], 'name': 'Beta', 'body': 'Notes'}
+        spec = {**self.spec, 'releaseId': 123, 'previousTagName': 'untagged-known'}
+        self.assertEqual(release.find_draft([draft], spec), draft)
+        restored = {**draft, 'tag_name': spec['tag']}
+        with patch.object(release, 'api_json', return_value=restored):
+            self.assertEqual(release.refresh_draft_notes(draft, spec, 'Notes', 'repos/owner/repo'), restored)
+        with patch.object(release, 'api_json') as api:
+            with self.assertRaisesRegex(ValueError, 'tag was edited'):
+                release.refresh_draft_notes({**draft, 'tag_name': 'other-tag'}, spec, 'Notes', 'repos/owner/repo')
+            api.assert_not_called()
 
     def test_manual_edits_after_text_correction_was_selected_are_preserved(self):
         draft = {'id': 123, 'draft': True, 'prerelease': True, 'tag_name': self.spec['tag'],

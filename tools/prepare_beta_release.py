@@ -89,7 +89,8 @@ def unpack_verified_artifact(data, destination, spec):
 
 
 def find_draft(releases, spec):
-    matching = [r for r in releases if r['tag_name'] == spec['tag']]
+    matching = [r for r in releases if r['tag_name'] == spec['tag'] or
+                (spec.get('releaseId') is not None and r.get('id') == spec['releaseId'])]
     if len(matching) > 1:
         raise ValueError('Multiple releases use the requested tag')
     if not matching:
@@ -113,14 +114,23 @@ def require_draft(release, spec, notes):
 def refresh_draft_notes(release, spec, notes, prefix):
     # Only the explicitly selected previous body may be replaced. Preserve
     # intervening manual edits and never alter assets or publication state.
-    require_draft({**release, 'body': notes}, spec, notes)
-    if release['body'] == notes:
+    require_draft({**release, 'body': notes, 'tag_name': spec['tag']}, spec, notes)
+    if release['tag_name'] != spec['tag'] and not (
+            release['id'] == spec.get('releaseId') and
+            release['tag_name'] == spec.get('previousTagName')):
+        raise ValueError('Draft tag was edited; refusing to overwrite it')
+    if release['body'] == notes and release['tag_name'] == spec['tag']:
         return release
     expected = spec.get('previousNotesSha256')
-    if not expected or sha256(release['body'].encode('utf-8')) != expected:
+    if release['body'] != notes and (
+            not expected or sha256(release['body'].encode('utf-8')) != expected):
         raise ValueError('Draft text was edited; refusing to overwrite it')
+    # GitHub may reset an uncreated draft tag when tag_name is omitted from
+    # PATCH. Resend the verified identity and keep publication flags explicit.
     updated = api_json(prefix + f'/releases/{release["id"]}', method='PATCH',
-                       data={'body': notes})
+                       data={'body': notes, 'tag_name': spec['tag'],
+                             'target_commitish': spec['sourceCommit'],
+                             'name': spec['title'], 'draft': True, 'prerelease': True})
     require_draft(updated, spec, notes)
     return updated
 

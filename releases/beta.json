@@ -9,5 +9,7 @@
   "setupSha256": "de297e64cb00fa78daf48fe3e88c870e9e160fc1916f80b4fff8a9dc892d78b2",
   "testedOBS": "33.0.1",
   "testedGrandMA3": "2.5.0.3",
-  "previousNotesSha256": "e25494d1b4989d2081e16452a308b9060ed6d3edcea51fc1485c720791c40de3"
+  "previousNotesSha256": "e25494d1b4989d2081e16452a308b9060ed6d3edcea51fc1485c720791c40de3",
+  "releaseId": 434933829,
+  "previousTagName": "untagged-6f19667ebc5a98918494"
 }
