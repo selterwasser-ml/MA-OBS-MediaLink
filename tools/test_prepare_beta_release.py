@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
 import prepare_beta_release as release
@@ -95,6 +96,26 @@ class ReleasePreparationTests(unittest.TestCase):
         for changes in ({'draft': False}, {'prerelease': False}, {'body': 'Manually edited'}):
             with self.assertRaisesRegex(ValueError, 'refusing to overwrite'):
                 release.require_draft({**draft, **changes}, self.spec, 'Notes')
+
+    def test_authorized_text_correction_changes_only_body(self):
+        old = {'id': 123, 'draft': True, 'prerelease': True, 'tag_name': self.spec['tag'],
+               'target_commitish': self.spec['sourceCommit'], 'name': 'Beta', 'body': 'Old notes',
+               'assets': [{'id': 7, 'name': 'setup.exe'}]}
+        spec = {**self.spec, 'previousNotesSha256': release.sha256(b'Old notes')}
+        updated = {**old, 'body': 'New notes'}
+        with patch.object(release, 'api_json', return_value=updated) as api:
+            self.assertEqual(release.refresh_draft_notes(old, spec, 'New notes', 'repos/owner/repo'), updated)
+            api.assert_called_once_with('repos/owner/repo/releases/123', method='PATCH',
+                                        data={'body': 'New notes'})
+
+    def test_manual_edits_after_text_correction_was_selected_are_preserved(self):
+        draft = {'id': 123, 'draft': True, 'prerelease': True, 'tag_name': self.spec['tag'],
+                 'target_commitish': self.spec['sourceCommit'], 'name': 'Beta', 'body': 'Manual edit'}
+        spec = {**self.spec, 'previousNotesSha256': release.sha256(b'Old notes')}
+        with patch.object(release, 'api_json') as api:
+            with self.assertRaisesRegex(ValueError, 'text was edited'):
+                release.refresh_draft_notes(draft, spec, 'New notes', 'repos/owner/repo')
+            api.assert_not_called()
 
 
 if __name__ == '__main__':

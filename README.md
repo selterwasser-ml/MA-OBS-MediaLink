@@ -15,7 +15,7 @@ Copyright © 2026 Oliver Cassel
 | Fixtureprofile | MA OBS MediaLink Fade (3 Kanäle) und MA OBS MediaLink Steuerung (7 Kanäle) |
 | Installer | Windows x64 / normale OBS-33-Installation; auch ohne Entwicklerwerkzeuge getestet |
 
-Dieses Repository enthält Quellcode und einen [automatischen Windows-Build](docs/BUILD.md). Nach erfolgreichen Tests stellt GitHub Windows-Setup, Windows-ZIP und das passende MA-/Fixture-Paket bereit. Der Projektbetreiber hat **OBS Studio 33.0.1** mit **grandMA3 2.5.0.3** positiv getestet. Die saubere Installation auf einem zweiten Rechner ohne Entwicklerwerkzeuge wurde ebenfalls bestätigt. Diese Rückmeldungen beziehen sich auf den getesteten Aufbau; andere Versionen und Hardwarekombinationen sind damit nicht pauschal geprüft.
+Dieses Repository enthält Quellcode und einen [automatischen Windows-Build](docs/BUILD.md). Nach erfolgreichen Tests stellt GitHub Windows-Setup, Windows-ZIP und das passende MA-/Fixture-Paket bereit. Ich habe **OBS Studio 33.0.1** mit **grandMA3 2.5.0.3** in meinem Aufbau erfolgreich getestet. Auch die saubere Installation auf einem zweiten Rechner ohne Entwicklerwerkzeuge hat funktioniert. Meine Tests beziehen sich auf diesen Aufbau; andere Versionen und Hardwarekombinationen habe ich damit nicht pauschal geprüft.
 
 Die [Beta-Versionshinweise](releases/v0.45.0-beta.1.md) nennen Download-Dateien, Teststand und bekannte Einschränkungen. Der [Release-Ablauf](docs/BETA_RELEASE.md) übernimmt den festgelegten getesteten Build in einen unveröffentlichten Entwurf. [Spätere Erweiterungen](docs/NEXT_STEPS.md) bleiben separat vorgemerkt.
 

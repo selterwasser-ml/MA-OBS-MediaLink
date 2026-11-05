@@ -8,5 +8,6 @@
   "artifactSha256": "27882506b95dddfc665fa3c1018ec96d332ff4da4596b29215101c5b4eee7044",
   "setupSha256": "de297e64cb00fa78daf48fe3e88c870e9e160fc1916f80b4fff8a9dc892d78b2",
   "testedOBS": "33.0.1",
-  "testedGrandMA3": "2.5.0.3"
+  "testedGrandMA3": "2.5.0.3",
+  "previousNotesSha256": "e25494d1b4989d2081e16452a308b9060ed6d3edcea51fc1485c720791c40de3"
 }

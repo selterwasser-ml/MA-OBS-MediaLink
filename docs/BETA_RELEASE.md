@@ -6,8 +6,8 @@
 - Vorgesehener Tag: **v0.45.0-beta.1**.
 - Binär- und Quellstand: `e35e3c71f41e557844a2147ac098c66fab537fd7`.
 - Erfolgreicher Build: [41978787624](https://github.com/selterwasser-ml/MA-OBS-MediaLink/actions/runs/41978787624).
-- Manuell getesteter Aufbau laut Projektbetreiber: **OBS 33.0.1**, **grandMA3 2.5.0.3**.
-- Installation auf einem zweiten Rechner ohne Entwicklerwerkzeuge: vom Projektbetreiber bestätigt.
+- Von mir getesteter Aufbau: **OBS 33.0.1**, **grandMA3 2.5.0.3**.
+- Installation auf einem zweiten Rechner ohne Entwicklerwerkzeuge: erfolgreich getestet.
 
 `releases/beta.json` hält den Build, das Artefakt und dessen SHA256 fest. Die Versionshinweise liegen unter `releases/v0.45.0-beta.1.md`. Die Release-Dateien werden aus dem vorhandenen getesteten Build übernommen. Neue Builds auf `main` ersetzen diesen festgelegten Stand nicht automatisch.
 
@@ -22,7 +22,7 @@ Der Workflow **Beta-Entwurf vorbereiten** läuft bei Änderungen seiner festgele
 5. liest den gespeicherten Entwurf zurück und prüft die Anhänge;
 6. stellt die vorbereiteten Dateien zusätzlich als Actions-Artefakt bereit.
 
-Ein vorhandener identischer Entwurf kann vervollständigt werden. Bereits veröffentlichte Releases sowie abweichende vorhandene Anhänge oder Entwurfsinhalte werden nicht überschrieben. Der Workflow enthält keinen Schritt zum Veröffentlichen, keine Änderung der Repository-Sichtbarkeit und keinen automatischen Austausch alter Releases.
+Ein vorhandener identischer Entwurf kann vervollständigt werden. Textkorrekturen lassen sich über `previousNotesSha256` in `releases/beta.json` gezielt für den bisherigen Textstand freigeben. Weicht der gespeicherte Text davon ab, hält der Workflow an, damit zwischenzeitliche manuelle Änderungen erhalten bleiben. Bereits veröffentlichte Releases und abweichende Anhänge werden nicht überschrieben. Der Workflow veröffentlicht nichts, ändert keine Repository-Sichtbarkeit und tauscht keine alten Releases automatisch aus.
 
 Die nur für diesen Workflow benötigten Rechte sind `actions: read` und `contents: write`. Der vorhandene Windows-Build behält seine Leserechte. Eigene dauerhafte Zugangsschlüssel werden nicht benötigt.
 

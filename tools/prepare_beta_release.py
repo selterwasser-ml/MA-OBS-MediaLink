@@ -110,6 +110,21 @@ def require_draft(release, spec, notes):
         raise ValueError('Draft metadata differs; refusing to overwrite it')
 
 
+def refresh_draft_notes(release, spec, notes, prefix):
+    # Only the explicitly selected previous body may be replaced. Preserve
+    # intervening manual edits and never alter assets or publication state.
+    require_draft({**release, 'body': notes}, spec, notes)
+    if release['body'] == notes:
+        return release
+    expected = spec.get('previousNotesSha256')
+    if not expected or sha256(release['body'].encode('utf-8')) != expected:
+        raise ValueError('Draft text was edited; refusing to overwrite it')
+    updated = api_json(prefix + f'/releases/{release["id"]}', method='PATCH',
+                       data={'body': notes})
+    require_draft(updated, spec, notes)
+    return updated
+
+
 def main():
     spec = json.loads((ROOT / 'releases/beta.json').read_text(encoding='utf-8'))
     notes = (ROOT / 'releases/v0.45.0-beta.1.md').read_text(encoding='utf-8')
@@ -123,7 +138,7 @@ def main():
         raise ValueError('Release list needs pagination before staging')
     release = find_draft(releases, spec)
     if release is not None:
-        require_draft(release, spec, notes)
+        release = refresh_draft_notes(release, spec, notes, prefix)
     run = api_json(prefix + f'/actions/runs/{spec["buildRunId"]}')
     if (run['head_sha'] != spec['sourceCommit'] or run['conclusion'] != 'success' or
             run['status'] != 'completed' or run['repository']['full_name'] != repo):
