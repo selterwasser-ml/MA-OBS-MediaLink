@@ -1,6 +1,6 @@
 # OBS v0.46 – Stand und nächste Schritte
 
-Im Testbuild umgesetzt:
+In v0.46 umgesetzt und praktisch getestet:
 
 - Universum **1** als Standard für eine frische MediaLink-Einrichtung.
 - MA-Plugin und beide Fixtures zusätzlich lokal mit dem Windows-Setup ablegen.
@@ -11,14 +11,14 @@ Im Testbuild umgesetzt:
 - Automatische Multicast-Vorgabe und Auswahl einer lokalen Netzwerkkarte.
 - Optionale Löschung der MediaLink-Einstellungen bei der Deinstallation, standardmäßig ausgeschaltet.
 
-Als Nächstes wird v0.46 praktisch getestet:
+Diese Testpunkte habe ich abgeschlossen:
 
-1. Frische Einrichtung: Universum 1 und „Automatisch (Windows-Standard)“ prüfen.
-2. Update von v0.45: bestehendes Universum, feste Interface-IP und Regeln müssen erhalten bleiben.
-3. MA-Paketordner öffnen, HTML-Startseite lesen und die XML-/Lua-/GDTF-Dateien prüfen.
-4. Deinstallation mit ausgeschalteter Löschoption: Regeln und Einstellungen müssen bei Neuinstallation erhalten bleiben.
-5. Deinstallation mit eingeschalteter Löschoption: ausschließlich die MediaLink-Einstellungen des angezeigten Kontos müssen verschwinden. Anschließend müssen die frischen Vorgaben wieder gelten.
-6. Multicast mit automatischer und gezielt ausgewählter Schnittstelle im eigenen Netzwerk prüfen.
-7. Szenenwechsel, Bild-/Tonfades, Blackmagic und OBS-Shutdown prüfen; anschließend Installation auf dem Rechner ohne Entwicklerwerkzeuge wiederholen.
+1. Frische Einrichtung mit Universum 1 und „Automatisch (Windows-Standard)“.
+2. Update von v0.45 mit Erhalt des bestehenden Universums, der festen Interface-IP und der Regeln.
+3. MA-Paketordner, Offline-Startseite, XML-/Lua-/GDTF-Dateien, Logo und GitHub-Link.
+4. Deinstallation ohne Löschung der Einstellungen und anschließende Neuinstallation.
+5. Deinstallation mit Löschung ausschließlich der MediaLink-Einstellungen des angezeigten Kontos; danach frische Vorgaben bei Neuinstallation.
+6. Multicast mit automatischer und gezielt ausgewählter Schnittstelle im eigenen Netzwerk.
+7. Bisheriger Szenen-, Bild-/Ton-, Blackmagic- und OBS-Shutdown-Praxistest sowie Installation auf dem zweiten Rechner ohne Entwicklerwerkzeuge.
 
-Nach diesen Tests folgt ein neuer Release-Entwurf für v0.46.0-beta.1 mit dem zugehörigen Quellstand und Prüfsummen. Die veröffentlichte Beta v0.45 bleibt unverändert verfügbar. Die festgelegten Dateien unter `releases/beta.json` gehören weiterhin zur bisherigen v0.45 und werden erst für eine neue Release-Vorbereitung bewusst aktualisiert.
+Als Nächstes wird der Entwurf für **v0.46.0-beta.1** mit dem getesteten Quellstand und allen fünf Release-Dateien geprüft. Anschließend kann ich ihn als Pre-release veröffentlichen. Die veröffentlichte Beta v0.45 bleibt unverändert verfügbar. `releases/current.json` legt den neuen Entwurf fest; `releases/beta.json` und der ältere Vorbereitungsworkflow bleiben als bisheriger v0.45-Stand erhalten.

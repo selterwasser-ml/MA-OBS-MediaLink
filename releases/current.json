@@ -1,0 +1,14 @@
+{
+  "repository": "selterwasser-ml/MA-OBS-MediaLink",
+  "tag": "v0.46.0-beta.1",
+  "title": "MA OBS MediaLink v0.46 BETA / grandMA3 v0.42",
+  "obsPluginVersion": "0.46.0",
+  "maPluginVersion": "0.42",
+  "sourceCommit": "3d21d5ffe65787880a4a045fad08d9dd748dc9a2",
+  "buildRunId": 42009314072,
+  "artifactId": 13405649300,
+  "artifactSha256": "6f8ff21758b28a339c65d237a1478e70b3fcb5f0521ac3dfb31e31fd0f1490a5",
+  "setupSha256": "0d6750454eff32767458b9b805ba9af07a806b2315dc65cdf39e0d882c84aecd",
+  "testedOBS": "33.0.1",
+  "testedGrandMA3": "2.5.0.3"
+}

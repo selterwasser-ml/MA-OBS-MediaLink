@@ -1,0 +1,49 @@
+name: Aktuellen Beta-Entwurf vorbereiten
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-draft.yml'
+      - 'releases/current.json'
+      - 'releases/*.md'
+      - 'tools/release_draft.py'
+      - 'tools/test_release_draft.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beta-draft-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    name: Getesteten Build als unveroeffentlichte Beta ablegen
+    if: github.repository == 'selterwasser-ml/MA-OBS-MediaLink'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Release-Vorbereitung pruefen
+        run: python -m unittest discover -s tools -p test_release_draft.py -v
+      - name: Gepruefte Pakete und Versionshinweise im Entwurf speichern
+        run: python tools/release_draft.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Vorbereitete Release-Dateien sichern
+        uses: actions/upload-artifact@v4
+        with:
+          name: MA-OBS-MediaLink-beta-release
+          path: dist/beta-release/*
+          if-no-files-found: error
+          retention-days: 90

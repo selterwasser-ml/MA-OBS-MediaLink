@@ -10,16 +10,16 @@ Copyright © 2026 Oliver Cassel
 
 | Komponente | Stand |
 | --- | --- |
-| OBS-Plugin | v0.46 BETA, Testbuild für Windows x64 / OBS 33 |
+| OBS-Plugin | v0.46 BETA für Windows x64 / OBS 33 |
 | grandMA3-Plugin | v0.42 BETA |
 | Fixtureprofile | MA OBS MediaLink Fade (3 Kanäle) und MA OBS MediaLink Steuerung (7 Kanäle) |
 | Installer | v0.46 mit lokalem MA-Paket und optionaler Löschung der Einstellungen |
 
-Dieses Repository enthält Quellcode und einen [automatischen Windows-Build](docs/BUILD.md). Nach erfolgreichen Tests stellt GitHub Windows-Setup, Windows-ZIP und das passende MA-/Fixture-Paket bereit. Die Änderungen für **v0.46** stehen zur praktischen Prüfung bereit. Die vorherige Beta **v0.45** habe ich mit **OBS Studio 33.0.1** und **grandMA3 2.5.0.3** erfolgreich getestet, einschließlich Installation auf einem zweiten Rechner ohne Entwicklerwerkzeuge. Diese bisherigen Tests ersetzen nicht den Praxistest der neuen Version.
+Dieses Repository enthält Quellcode und einen [automatischen Windows-Build](docs/BUILD.md). Nach erfolgreichen Tests stellt GitHub Windows-Setup, Windows-ZIP und das passende MA-/Fixture-Paket bereit. Ich habe **v0.46** mit **OBS Studio 33.0.1** und **grandMA3 2.5.0.3** in meinem Aufbau getestet und die vorgesehenen Praxis- und Installationstests abgeschlossen. Dazu gehören das Update von v0.45, die neuen Bedienelemente, beide Deinstallationsvarianten und die Installation auf dem zweiten Rechner ohne Entwicklerwerkzeuge. Andere Versions- und Hardwarekombinationen habe ich damit nicht pauschal geprüft.
 
 In **v0.46** startet eine frische Einrichtung mit Universum **1** und automatischer Multicast-Schnittstelle. Bereits gespeicherte Werte bleiben erhalten. Unter **Allgemein → MA-Paket und Anleitungen öffnen** findest du Fixtures, MA-Plugin und die lokale Startseite. Der Über-Tab zeigt das neue Logo und den GitHub-Link. Bei der Deinstallation entscheidest du, ob deine MediaLink-Einstellungen erhalten bleiben oder gelöscht werden.
 
-Der [Stand der v0.46-Arbeiten](docs/NEXT_STEPS.md) nennt die nächsten Installationstests. Die [Versionshinweise der vorherigen Beta](releases/v0.45.0-beta.1.md) und deren [festgelegter Release-Ablauf](docs/BETA_RELEASE.md) bleiben als bisheriger Stand erhalten. Der neue Testbuild veröffentlicht keinen Release automatisch.
+Die [Versionshinweise für v0.46](releases/v0.46.0-beta.1.md) nennen Änderungen, Download-Dateien und Teststand. Der [Release-Ablauf](docs/BETA_RELEASE.md) übernimmt genau den getesteten Build in einen unveröffentlichten Entwurf. [Stand und nächster Schritt](docs/NEXT_STEPS.md): Entwurf prüfen und anschließend als Pre-release veröffentlichen. Die [vorherige Beta v0.45](releases/v0.45.0-beta.1.md) bleibt unverändert verfügbar.
 
 ## Einstieg
 
