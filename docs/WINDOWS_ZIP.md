@@ -1,6 +1,6 @@
 # MA OBS MediaLink v0.45 BETA · Windows x64
 
-Dieses Paket enthält die fertige DLL für OBS Studio 33 (Windows x64) und den benötigten Shader. Es ist ein ZIP-Paket; der Installer ist noch in Vorbereitung. Der Build verwendet das SDK von OBS 33.0.0 und Qt 6.11.1. Ein erfolgreicher Build ersetzt keinen Test im eigenen OBS-Aufbau.
+Dieses Paket enthält die fertige DLL für OBS Studio 33 (Windows x64) und den benötigten Shader. Als Alternative zum manuellen Kopieren wird ein separates [Windows-Setup](WINDOWS_INSTALLER.md) bereitgestellt. Der Build verwendet das SDK von OBS 33.0.0 und Qt 6.11.1. Ein erfolgreicher Build ersetzt keinen Test im eigenen OBS-Aufbau.
 
 ## Manuell installieren oder aktualisieren
 

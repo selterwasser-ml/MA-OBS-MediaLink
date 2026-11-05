@@ -56,12 +56,19 @@ jobs:
         env:
           MEDIALINK_REVISION: ${{ github.sha }}
         run: python tools/build_packages.py
+      - name: Windows-Installer bauen
+        run: ./installer/Build_Installer.ps1
+      - name: Installer auf dem Testrechner pruefen
+        run: ./installer/Test_Installer.ps1
+      - name: Pruefsummen inklusive Setup erzeugen
+        run: python tools/build_packages.py --finalize-installer
       - name: Pakete zum Herunterladen bereitstellen
         uses: actions/upload-artifact@v4
         with:
           name: MA-OBS-MediaLink-v045-MA042-windows-x64
           path: |
             dist/*.zip
+            dist/*_Setup_x64.exe
             dist/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30

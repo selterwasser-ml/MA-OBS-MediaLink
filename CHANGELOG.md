@@ -1,5 +1,13 @@
 # Änderungen
 
+## Windows-Installer für OBS v0.45 / MA v0.42
+
+- Setup für normale OBS-33-Installationen unter Windows x64 mit Erkennung des OBS-Ordners und Prüfung auf laufendes OBS.
+- Aktualisierung einer vorhandenen Installation am gleichen Pluginpfad und Deinstaller; OBS-Konfiguration und MediaLink-Regeln bleiben erhalten.
+- Inno-Setup-Compiler mit festgelegter Version und Downloadprüfsumme; Setup und Prüfsumme als zusätzliche GitHub-Buildausgabe.
+- Automatisierter Installertest mit künstlichem OBS-Testprogramm. Reale Installation und Laufzeittests bleiben vor einer öffentlichen Beta erforderlich.
+- Pluginfunktionen, Versionsnummern, Fixture-Typ-IDs und Kanalbelegung unverändert.
+
 ## Build-Infrastruktur für OBS v0.45 / MA v0.42
 
 - GitHub Actions führt die mitgelieferten OBS-/MA-Tests aus und baut anschließend das Plugin für Windows x64 mit Visual Studio 2026.

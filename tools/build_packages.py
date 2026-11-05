@@ -1,9 +1,11 @@
 """Package explicitly listed runtime files, MA imports and documentation.
 
 Run after OBS/Build_OBS33_Release.ps1. Produces two ZIPs and SHA256SUMS.txt in
-dist/. No installer, OBS/Qt runtimes, settings, SDKs or build folders are shipped.
+dist/. Use --finalize-installer after installer/Build_Installer.ps1 to include
+the setup executable in SHA256SUMS.txt. OBS/Qt runtimes and settings are excluded.
 """
 from pathlib import Path
+import argparse
 import hashlib
 import json
 import os
@@ -38,6 +40,20 @@ def write_zip(path, files, metadata):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--finalize-installer', action='store_true',
+                        help='Write checksums for existing ZIPs and setup')
+    args = parser.parse_args()
+    dist = ROOT / "dist"
+    packages = [dist / "MA_OBS_MediaLink_v045_Windows_x64.zip",
+                dist / "MA_OBS_MediaLink_MA042.zip"]
+    if args.finalize_installer:
+        packages.append(dist / "MA_OBS_MediaLink_v045_Setup_x64.exe")
+        for path in packages:
+            if not path.is_file() or path.stat().st_size == 0:
+                raise FileNotFoundError(path)
+        write_checksums(dist, packages)
+        return
     spec_file = ROOT / "OBS/dependencies.json"
     spec = json.loads(spec_file.read_text(encoding="utf-8"))
     dll = ROOT / f"OBS/Release/{PLUGIN}/bin/64bit/{PLUGIN}.dll"
@@ -51,6 +67,7 @@ def main():
         (ROOT / "OBS/README.md", "OBS/README.md"),
         (ROOT / "docs/BUILD.md", "docs/BUILD.md"),
         (ROOT / "docs/WINDOWS_ZIP.md", "docs/WINDOWS_ZIP.md"),
+        (ROOT / "docs/WINDOWS_INSTALLER.md", "docs/WINDOWS_INSTALLER.md"),
     ]
     ma = common + [(ROOT / name, name) for name in (
         "grandMA3/MA3/MA_OBS_MediaLink.xml", "grandMA3/MA3/MA_OBS_MediaLink.lua",
@@ -69,13 +86,15 @@ def main():
         "dllSha256": hashlib.sha256(dll.read_bytes()).hexdigest(),
         "dependencies": spec["archives"],
     }
-    dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
-    packages = [dist / "MA_OBS_MediaLink_v045_Windows_x64.zip",
-                dist / "MA_OBS_MediaLink_MA042.zip"]
+    (dist / "BUILD-INFO.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     for path, files in zip(packages, (windows, ma)):
         write_zip(path, files, metadata)
         print(f"Created {path.name}")
+    write_checksums(dist, packages)
+
+
+def write_checksums(dist, packages):
     sums = "".join(f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}\n" for p in packages)
     (dist / "SHA256SUMS.txt").write_text(sums, encoding="utf-8")
     print(sums, end="")

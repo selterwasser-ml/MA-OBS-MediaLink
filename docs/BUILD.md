@@ -11,9 +11,10 @@ Das heruntergeladene GitHub-Archiv enthält:
 
 | Datei | Inhalt |
 | --- | --- |
+| `MA_OBS_MediaLink_v045_Setup_x64.exe` | Windows-Installer mit Update und Deinstallation |
 | `MA_OBS_MediaLink_v045_Windows_x64.zip` | Fertige Plugin-DLL, Shader, Hinweise und Anleitung |
 | `MA_OBS_MediaLink_MA042.zip` | grandMA3-Importdateien, beide GDTF-Profile und MA-Anleitungen |
-| `SHA256SUMS.txt` | SHA256-Prüfsummen der beiden ZIP-Dateien |
+| `SHA256SUMS.txt` | SHA256-Prüfsummen von Setup und beiden ZIP-Dateien |
 
 Die Pakete werden auch bei Pull Requests zum Prüfen erzeugt. Es wird kein Release veröffentlicht und nichts auf einem Nutzerrechner installiert. Eigene Repository-Secrets sind nicht erforderlich; der Ablauf hat nur Leserechte für den Repository-Inhalt.
 
@@ -34,9 +35,11 @@ Voraussetzungen: Windows x64, Visual Studio 2026 mit **Desktopentwicklung mit C+
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\OBS\Build_OBS33_Release.ps1
 python -X utf8 .\tools\build_packages.py
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\installer\Build_Installer.ps1
+python -X utf8 .\tools\build_packages.py --finalize-installer
 ```
 
-Das erste Skript lädt und prüft die Abhängigkeiten, baut das OBS-SDK und das Plugin und legt die Laufzeitdateien unter `OBS/Release/obs-sacn-crossfade/` ab. Das zweite erzeugt die ZIP-Dateien und Prüfsummen unter `dist/`. Die erzeugten Ordner werden nicht ins Repository hochgeladen.
+Die Befehle bauen das OBS-SDK und Plugin, erzeugen die ZIPs, bauen das Setup und ergänzen seine Prüfsumme unter `dist/`. Der Installer-Build lädt Inno Setup 6.7.4 mit der in `installer/compiler.json` festgelegten Prüfsumme und entpackt den Compiler im offiziellen portablen Modus nach `installer/.deps`. Er installiert den Compiler nicht systemweit. Die erzeugten Ordner werden nicht ins Repository hochgeladen.
 
 Ein bereits vorhandenes SDK aus dem bisherigen Plugin-Template kann ausdrücklich weiterverwendet werden:
 
@@ -56,4 +59,6 @@ python tools/run_tests.py
 
 Der Aufruf führt alle zwölf mitgelieferten OBS-Testskripte aus, danach die MA-Tests und den Abgleich des eingebetteten Lua-Kerns mit der Importdatei. Die C++-Tests verwenden ihre vorhandenen OBS-/Qt-Testadapter und überwiegend AddressSanitizer/UndefinedBehaviorSanitizer. Das vollständige Plugin wird separat unter Windows kompiliert.
 
-Vor einer Beta-Veröffentlichung bleiben die Erstinstallation ohne Entwicklerwerkzeuge, Update, Deinstallation, Audio-/Blackmagic-Laufzeittests, OBS-Shutdown und der Import der umbenannten Fixtures zu prüfen. Der eigentliche Installer folgt im nächsten Arbeitsschritt.
+`installer/Test_Installer.ps1` führt auf dem frischen GitHub-Windows-Runner die echte Setup-Datei aus. Ein künstliches x64-Programm mit OBS-33-Dateiversion prüft Ordnererkennung, portable Markierung, doppelte DLL, laufenden Prozess, Erstinstallation, Update, Deinstallation und Neuinstallation. Fremde Dateien müssen erhalten bleiben. Das Testskript verweigert die Ausführung auf einem normalen Arbeitsplatz oder einem Runner mit vorhandenem OBS/MediaLink. Es ersetzt keine Tests mit echtem OBS.
+
+Vor einer Beta-Veröffentlichung bleiben die Erstinstallation ohne Entwicklerwerkzeuge, Update, Deinstallation, Audio-/Blackmagic-Laufzeittests, OBS-Shutdown und der Import der umbenannten Fixtures zu prüfen. Anleitung für das Setup: [WINDOWS_INSTALLER.md](WINDOWS_INSTALLER.md).
