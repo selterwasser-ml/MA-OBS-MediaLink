@@ -15,7 +15,7 @@ Das Kopieren ersetzt nur Plugin-Dateien. MediaLink-Regeln und OBS-Einstellungen 
 
 Den vollständigen Pluginordner einschließlich `data/ma-paket` und `data/medialink.ico` kopieren. Unter **Allgemein → MA-Paket und Anleitungen öffnen** findest du die Offline-Startseite und die mitgelieferten MA-/Fixture-Dateien. Der Import in grandMA3 bleibt ein eigener Schritt. Der Über-Tab zeigt das freigegebene Logo und den Repository-Link. Bei einer frischen Konfiguration gelten Universum 1 und automatische Multicast-Auswahl; bereits gespeicherte Werte bleiben erhalten.
 
-Die ausführliche OBS-Anleitung liegt unter `OBS/README.md`. Das passende MA-Paket enthält die Importdateien für grandMA3 v0.42 und beide Fixtureprofile.
+Die ausführliche OBS-Anleitung liegt unter `OBS/README.md`. Das passende MA-Paket enthält die Importdateien für grandMA3 v0.43 und beide Fixtureprofile.
 
 ## Herkunft und Lizenz
 

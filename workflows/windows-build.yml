@@ -59,7 +59,7 @@ jobs:
       - name: Pakete zum Herunterladen bereitstellen
         uses: actions/upload-artifact@v4
         with:
-          name: MA-OBS-MediaLink-v045-MA042-windows-x64
+          name: MA-OBS-MediaLink-v045-MA043-windows-x64
           path: |
             dist/*.zip
             dist/SHA256SUMS.txt

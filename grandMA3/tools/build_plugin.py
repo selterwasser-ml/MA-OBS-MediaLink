@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CORE = ROOT / 'source' / 'medialink_core.lua'
 OUTPUT = ROOT / 'MA3' / 'MA_OBS_MediaLink.lua'
 
-HEADER = '''-- MA OBS MediaLink v0.42 BETA | Copyright © 2026 Oliver Cassel
+HEADER = '''-- MA OBS MediaLink v0.43 BETA | Copyright © 2026 Oliver Cassel
 -- Für Farin und Bela.
 -- Loading this component only returns an entry function. MA APIs run on invocation.
 local plugin_arguments=table.pack(...)
@@ -22,14 +22,14 @@ local function traceback(value)
     return tostring(value)
 end
 local function show_error(phase,detail)
-    local report='MA OBS MediaLink 0.42: '..phase..'\\n'..tostring(detail)
+    local report='MA OBS MediaLink 0.43: '..phase..'\\n'..tostring(detail)
     local printed=false
     if type(ErrPrintf)=='function' then printed=pcall(ErrPrintf,'%s',report) end
     if not printed and type(Printf)=='function' then pcall(Printf,'%s',report) end
     local first=tostring(detail):match('([^\\n]+)') or 'Unbekannter Fehler'
     if type(MessageBox)=='function' then
         pcall(MessageBox,{
-            title='MA OBS MediaLink · v0.42 BETA – Startfehler',
+            title='MA OBS MediaLink · v0.43 BETA – Startfehler',
             message='Das Plugin konnte nicht gestartet werden.\\n\\nSchritt: '..phase..'\\n'..first..
                 '\\n\\nWeitere Details stehen im System Monitor.',
             commands={{value=0,name='Schließen'}}})
@@ -40,7 +40,7 @@ local function main(...)
     local phase='Codeprüfung'
     local result=table.pack(xpcall(function()
         if not runtime then
-            local chunk,why=load(CORE_SOURCE,'@MA OBS MediaLink v0.42 core','t',_ENV)
+            local chunk,why=load(CORE_SOURCE,'@MA OBS MediaLink v0.43 core','t',_ENV)
             if not chunk then error(why,0) end
             phase='Initialisierung'
             local entry=chunk(table.unpack(plugin_arguments,1,plugin_arguments.n))

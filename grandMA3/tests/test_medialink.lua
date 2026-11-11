@@ -9,7 +9,7 @@ local installed_source=file:read('*a');file:close()
 local core_source=assert(installed_source:match('local CORE_SOURCE = %[%=%=%=%=%[\n(.-)%]%=%=%=%=%]'))
 local function loadcore() return load(core_source,'@MA OBS MediaLink core','t',_ENV) end
 local variables,commands,timers={}, {}, {}
-local sources,groups,presets,sequences,programmer={},{},{},{},{}
+local sources,groups,sequences,programmer={},{},{},{}
 local selection={{id=77,x=3,y=4,z=1},{id=78,x=9,y=2,z=0}}
 local initial_selection=selection
 local current_dp=1
@@ -25,8 +25,7 @@ end
 local main=object({no=3,name='Main',children={}},'DataPool 1 Sequence 3')
 function main:CurrentChild() return self.current end
 sequences[3]=main
-local dp={no=1,PresetPools={}}
-for n=21,25 do dp.PresetPools[n]={} end
+local dp={no=1}
 function DataPool() dp.no=current_dp;return dp end
 function GlobalVars() return variables end
 -- Model the actual MA boundary: a missing GetVar can return NO Lua values.
@@ -102,9 +101,6 @@ function ObjectList(text)
     if d then assert(tonumber(d)==1);local c=findcue(tonumber(seq),tonumber(cue));return c and {c} or {} end
     d,seq=text:match('^DataPool (%d+) Sequence (%d+)$')
     if d then assert(tonumber(d)==1);local s=sequences[tonumber(seq)];return s and {s} or {} end
-    local pool,slot
-    d,pool,slot=text:match('^DataPool (%d+) Preset (%d+)%.(%d+)$')
-    if d then assert(tonumber(d)==1);local p=dp.PresetPools[tonumber(pool)][tonumber(slot)];return p and {p} or {} end
     local group;d,group=text:match('^DataPool (%d+) Group (%d+)$')
     if d then local g=groups[tonumber(group)];return g and {g} or {} end
     error('Unsupported lookup: '..text)
@@ -148,14 +144,23 @@ function Cmd(text)
         end
         error('Missing attribute')
     end
-    local pool,slot=text:match('^Store DataPool 1 Preset (%d+)%.(%d+) ')
-    if pool then
-        pool,slot=tonumber(pool),tonumber(slot);assert(not dp.PresetPools[pool][slot],'Overwrite forbidden')
-        assert(text:find('/ActiveForSelected',1,true) and text:find('/Selective',1,true))
-        dp.PresetPools[pool][slot]=object({no=slot,name='',data=selected_data()},'DataPool 1 Preset '..pool..'.'..slot);return 'OK'
+    local label
+    local seq,no=text:match('^Store DataPool 1 Sequence (%d+) Cue ([%d%.]+) Part 0 ')
+    if seq then
+        local cue=assert(findcue(tonumber(seq),tonumber(no)))
+        local data=cue[1].data.by_fixtures
+        assert(text:find('/Programmer',1,true) and text:find('/CueOnly "Off"',1,true))
+        if text:find('/Remove',1,true) then
+            if data[300] then data[300].VideoCrossfade=nil end
+        else
+            assert(text:find('/Merge',1,true))
+            data[300]=data[300] or {}
+            local a=data[300].VideoCrossfade or {}
+            a[1]=a[1] or {};a[1].absolute_value=assert(programmer[3001][1].absolute_value)
+            a.abs_preset=nil;data[300].VideoCrossfade=a
+        end
+        return 'OK'
     end
-    local label;pool,slot,label=text:match('^Label DataPool 1 Preset (%d+)%.(%d+) "(.*)"$')
-    if pool then dp.PresetPools[tonumber(pool)][tonumber(slot)].name=label;return 'OK' end
     local seq,no=text:match('^Store DataPool 1 Sequence (%d+) Cue (%d+) ')
     if seq then
         assert(text:find('/ActiveForSelected',1,true));assert(not findcue(tonumber(seq),tonumber(no)))
@@ -170,18 +175,12 @@ function Cmd(text)
     error('Unsupported command: '..text)
 end
 local A=assert(loadcore())('MA OBS MediaLink','Bedienung')
-local c=A.default_config();c.configured=1;c.base=101
+local c=A.default_config();c.configured=1
 local function expect_error(fn,pattern)
     local ok,e=pcall(fn);assert(not ok and tostring(e):find(pattern,1,true),tostring(e))
 end
 local function count_go()
     local n=0;for _,cmd in ipairs(commands) do if cmd:match('^Goto ') then n=n+1 end end;return n
-end
-local function run_generation(plan)
-    local thread=coroutine.create(function() return A.generate(c,plan) end)
-    local ok,result
-    repeat ok,result=coroutine.resume(thread);assert(ok,result) until coroutine.status(thread)=='dead'
-    return result
 end
 assert(A.raw24(0)==0 and A.raw24(1023)==16777215)
 for i=0,1023 do
@@ -203,53 +202,17 @@ patch_base=5632
 -- DataPool 1 stays valid; reserved Preview DataPool 128 does not.
 local reserved={};for k,v in pairs(c) do reserved[k]=v end;reserved.dp=128
 expect_error(function() A.validate(reserved) end,'Preview')
-local migrated=A.decode(A.encode(c):gsub(';mode=1',''))
-assert(migrated.mode==1 and migrated.dp==1 and migrated.base==101)
+local migrated=A.decode('v31;dp=1;main=3;fade=300;controller=301;pool=25;base=101;control=900;step=10;count=10;startup=3;mode=1;configured=1')
+assert(migrated.dp==1 and migrated.pool==nil and migrated.base==nil and A.encode(migrated)==A.encode(c))
 assert(A.clean_error('[string "MA OBS MediaLink"]:136: Patchfehler\nstack traceback:\n technical')=='Patchfehler')
 
 local invalid=A.default_config();invalid.fade=invalid.controller;expect_error(function() A.validate(invalid) end,'verschieden')
-invalid=A.default_config();invalid.pool=20;expect_error(function() A.validate(invalid) end,'All-Presetpool')
--- Sparse append + immutable raw positions, ten NEW presets per click.
-local plan=A.plan_presets(c,'append');assert(#plan.items==10 and plan.items[1].slot==101 and plan.items[10].slot==191)
-assert(run_generation(plan)==10)
-assert(selection==initial_selection and selection[1].x==3 and programmer[777].sentinel)
-assert(next(groups)==nil and programmer[3001]==nil)
-plan=A.plan_presets(c,'append');assert(plan.items[1].slot==201 and plan.items[10].slot==291)
-assert(run_generation(plan)==10)
--- Foreign occupancy is reported and never overwritten; gaps explicitly fill slots.
-local foreign=object({no=102,name='Foreign'},'DataPool 1 Preset 25.102');dp.PresetPools[25][102]=foreign
-local gaps=function(t)local r={};for k,v in pairs(t) do r[k]=v end;return r end
-gaps=gaps(c);gaps.step=1;gaps.count=2
-plan=A.plan_presets(gaps,'gaps');assert(#plan.conflicts==1 and plan.items[1].slot==103 and plan.items[2].slot==104)
-assert(dp.PresetPools[25][102]==foreign)
--- Gap mode must fill intermediate slots even while append spacing remains 10.
-local actual_gaps=A.plan_presets(c,'gaps')
-assert(actual_gaps.items[1].slot==103 and actual_gaps.items[2].slot==104,
-    'Gap mode still uses append spacing and grows the range instead of filling holes')
--- Logical bound: only 103 sparse (stride 10) positions exist in 1024 slots.
-local bound={};for k,v in pairs(c) do bound[k]=v end;bound.count=1024
-plan=A.plan_presets(bound,'append');assert(#plan.items==83 and plan.items[#plan.items].index==1020)
--- All five All pools supported; root pool selection isn't changed by the plugin.
-for pool=21,25 do
-    local other={};for k,v in pairs(c) do other[k]=v end;other.pool=pool
-    assert(#A.plan_presets(other,'append').items==10)
-end
-current_dp=2;expect_error(function() A.preflight(c) end,'Datenpool');current_dp=1
--- Race after preview must not replace the now occupied target.
-local raced=A.plan_presets(c,'append');local slot=raced.items[1].slot
-dp.PresetPools[25][slot]=foreign
-expect_error(function() A.generate(c,raced) end,'inzwischen belegt');dp.PresetPools[25][slot]=nil
--- Failures restore selection/programmer and remove the temporary group.
-fault='Store DataPool 1 Preset';local retry=A.plan_presets(c,'append')
-expect_error(function() A.generate(c,{items={retry.items[1]}}) end,'Befehl fehlgeschlagen');fault=nil
-assert(selection==initial_selection and next(groups)==nil and programmer[777].sentinel and programmer[3001]==nil)
 programmer[3011]={{absolute_value=12}}
 expect_error(function() A.isolated(c,301,function()error('must not run')end) end,'Programmer-Daten');programmer[3011]=nil
 -- Main cue read must use the chosen sequence, not global selection.
 local function maincue(no,slot,scene)
-    local p=dp.PresetPools[25][slot]
-    local value=p.data.by_fixtures[300].VideoCrossfade[1].absolute_value
-    return cueobject(3,no,{by_fixtures={[300]={VideoCrossfade={abs_preset=p,{absolute_value=value}}}}},'',scene)
+    local value=A.raw24(no>4 and no*10 or slot-101)
+    return cueobject(3,no,{by_fixtures={[300]={VideoCrossfade={{absolute_value=value}}}}},'',scene)
 end
 local q1=maincue(1,101,'OBS:6');local q2=maincue(2,111,'OBS:6')
 local e1=assert(A.read_cue(c,q1));assert(e1.index==0 and e1.scene==6)
@@ -323,9 +286,9 @@ A.main();if A.state.running then A.stop() end
 local all='';for _,t in ipairs(displayed) do all=all..t.message end
 assert(all:find('Copyright © 2026 Oliver Cassel',1,true) and all:find('Für Farin und Bela.',1,true))
 assert(all:find('Diese Beta-Version befindet sich in Entwicklung.',1,true))
-print('PASS: actual Lua 5.4 plugin – sparse generation/append/gaps/bounds/conflicts, immutable raw mapping, programmer/selection restoration, fixed-sequence cue reading, metadata revisions/reuse, dispatch/duplicate stop guards, sender lock, three startup policies, About')
+print('PASS: raw mapping, patch, selection, revisions, dispatch, sender lock, startup and About')
 
--- Actual UI handlers: no hardware/patch preflight on Save; all preset fields together.
+-- Setup Save does not require a live hardware/patch preflight.
 local function answer_defaults(t,result)
     local answer={success=true,result=result,inputs={},selectors={}}
     for _,field in ipairs(t.inputs or {}) do answer.inputs[field.name]=field.value end
@@ -350,44 +313,9 @@ end
 local saved=A.setup(c)
 assert(setup_seen and saved.configured==1 and saved.dp==1 and #commands==before_commands)
 assert(GetVar(nil,'MAOBS_ML31_CONFIG')==A.encode(saved))
-local presets_seen=false
-function MessageBox(t)
-    displayed[#displayed+1]=t
-    if t.inputs then
-        presets_seen=true
-        local answer=answer_defaults(t,2)
-        assert(answer.inputs['01 Erste Presetposition'] and answer.inputs['02 Anzahl zusätzlich'] and answer.inputs['03 Abstand beim Anhängen'])
-        assert(t.selectors[1].values['All 1']==21 and t.selectors[1].values['All 5']==25)
-        answer.inputs['01 Erste Presetposition']='201'
-        answer.inputs['02 Anzahl zusätzlich']='15'
-        answer.inputs['03 Abstand beim Anhängen']='5'
-        answer.selectors['04 All-Presetpool']=22
-        answer.selectors['05 Vorgehen']=2
-        return answer
-    end
-    return {success=true,result=0}
-end
-saved=A.presets_ui(saved)
-assert(presets_seen and saved.base==201 and saved.pool==22 and saved.count==15 and saved.step==5 and saved.mode==2)
-assert(#commands==before_commands and GetVar(nil,'MAOBS_ML31_CONFIG')==A.encode(saved))
 function MessageBox(t) return {success=true,result=0} end
-local config_before=GetVar(nil,'MAOBS_ML31_CONFIG')
-assert(A.presets_ui(saved)==saved and GetVar(nil,'MAOBS_ML31_CONFIG')==config_before)
--- Error from Preview is short in modal; full trace retained for diagnostic log.
-local stage=0;local friendly
-function MessageBox(t)
-    displayed[#displayed+1]=t
-    if stage==0 then stage=1;return {success=true,result=3} end
-    if t.inputs then return answer_defaults(t,1) end
-    if t.title:find('Hinweis',1,true) then friendly=t.message;return {success=true,result=0} end
-    return {success=true,result=0}
-end
-A.main()
-assert(friendly and friendly:find('Injected patch read failure',1,true))
-assert(not friendly:find('stack traceback',1,true) and not friendly:find('.lua:',1,true))
-assert(A.state.last_error:find('stack traceback',1,true))
 GetRTChannel=rt_api
-print('PASS: zero-based RT universe starts/end boundaries, Preview DP rejection, DP1 support, v0.31 config migration, combined preset settings, Save without patch, cancel without writes, concise UI errors with technical log')
+print('PASS: settings migration, setup Save without patch')
 
 -- v0.33: exercise exactly the zero-return/empty-write MA behavior from screenshots.
 assert(select('#',GetVar(nil,'NO_SUCH_VAR'))==0)
@@ -456,7 +384,7 @@ GetVar=normal_getvar
 -- Upgrade invalidates callbacks and releases its previous local sender via DelVar.
 A.start(c);local old_epoch=A.state.epoch;A.state.version='0.32'
 local upgraded=assert(loadcore())('MA OBS MediaLink','Bedienung')
-assert(not upgraded.state.running and upgraded.state.epoch>old_epoch and upgraded.state.version=='0.42')
+assert(not upgraded.state.running and upgraded.state.epoch>old_epoch and upgraded.state.version=='0.43')
 assert(variables.MAOBS_ML31_SENDER==nil and variables.MAOBS_ML31_LAST==1)
 local before_upgrade_tick=#commands;A.tick(old_epoch);assert(#commands==before_upgrade_tick)
 print('PASS: v0.33 zero-return GetVar normalization, first Start, missing LAST/TOKEN/HEARTBEAT, idempotent DelVar release, numeric SetVar result/readback, failed claim/timer rollback, stopped runtime on delete refusal, actual diagnosis release, compatible upgrade')
@@ -476,7 +404,7 @@ local after_identity=A.read_cue(c,q1)
 assert(before_identity.key==after_identity.key and before_identity.signature==after_identity.signature)
 q1.address=previous_addr;q1.no=1000
 local function stores()
-    local n=0;for _,text in ipairs(commands) do if text:match('^Store DataPool 1 Sequence ') then n=n+1 end end
+    local n=0;for _,text in ipairs(commands) do if text:match('^Store DataPool 1 Sequence ') and not text:find('Part 0',1,true) then n=n+1 end end
     return n
 end
 local normal_cmd=Cmd
@@ -599,7 +527,7 @@ local all_main_children=main.children;main.children={recovery_main};main.current
 SetVar(nil,'MAOBS_ML31_CONFIG',A.encode(recovery_cfg))
 A.state.version='0.34'
 local B=assert(loadcore())('MA OBS MediaLink','Bedienung')
-assert(B.state.version=='0.42')
+assert(B.state.version=='0.43')
 B.start(recovery_cfg);B.tick(B.state.epoch)
 assert(B.state.running and B.state.map[recovery_entry.key].control==1002)
 assert(stores()==before_recover and legacy_cue.name==legacy_name)
@@ -613,47 +541,11 @@ C.stop('Aus');_G.MA_OBS_MEDIALINK31=previous_runtime;main.children=all_main_chil
 for _,command in ipairs(commands) do assert(not command:match('^Delete DataPool %d+ Sequence ')) end
 print('PASS: v0.35 real comma-stripping behavior, alphanumeric labels, exact recovery of ML31 400064920001053 with data validation, rejection of unrelated/modified data, retained-guard recovery, upgrade and fresh-runtime reuse without Store/relabel/delete')
 
--- v0.36: gap mode fills the existing span at unit spacing, even with step 10.
-local gap_cfg={};for k,v in pairs(c) do gap_cfg[k]=v end
-gap_cfg.count=1024;gap_cfg.step=10
-local bounded=A.plan_presets(gap_cfg,'gaps')
-assert(bounded.step==1 and bounded.highest==190 and bounded.finish==190)
-assert(#bounded.items==170 and #bounded.conflicts==1)
-for _,item in ipairs(bounded.items) do
-    assert(item.slot>=101 and item.slot<=291 and item.raw==A.raw24(item.index))
-    assert((item.slot-101)%10~=0 and item.slot~=102)
-end
-local protected_presets={}
-for slot,preset in pairs(dp.PresetPools[25]) do protected_presets[slot]=preset end
-local small_gap={};for k,v in pairs(gap_cfg) do small_gap[k]=v end;small_gap.count=5
-local first_gaps=A.plan_presets(small_gap,'gaps')
-assert(first_gaps.items[1].slot==103 and first_gaps.items[5].slot==107)
-assert(A.generate(small_gap,first_gaps)==5)
-local following=A.plan_presets(small_gap,'gaps')
-assert(following.items[1].slot==108) -- repeated invocation continues with real holes
-local remaining=A.plan_presets(gap_cfg,'gaps');assert(#remaining.items==165)
-local thread=coroutine.create(function() return A.generate(gap_cfg,remaining) end)
-local ok,result
-repeat ok,result=coroutine.resume(thread);assert(ok,result) until coroutine.status(thread)=='dead'
-assert(result==165)
-for slot,preset in pairs(protected_presets) do assert(dp.PresetPools[25][slot]==preset) end
-local no_gaps=A.plan_presets(gap_cfg,'gaps')
-assert(#no_gaps.items==0 and no_gaps.reason:find('Keine freien Zwischenplätze',1,true))
-assert(dp.PresetPools[25][292]==nil) -- never silently append from gap mode
-local append=A.plan_presets(c,'append')
-assert(append.step==10 and append.items[1].slot==301) -- append raster unchanged
--- Empty target and foreign occupancy beyond the managed span do not enlarge it.
-local empty_cfg={};for k,v in pairs(gap_cfg) do empty_cfg[k]=v end;empty_cfg.pool=21
-local empty=A.plan_presets(empty_cfg,'gaps')
-assert(#empty.items==0 and empty.reason:find('Noch keine passenden',1,true))
-dp.PresetPools[25][1001]=foreign
-assert(A.plan_presets(gap_cfg,'gaps').finish==190)
-dp.PresetPools[25][1001]=nil
 -- Version readout is optional and read-only, also useful for MA editor issues.
 function BuildDetails() return {BigVersion='2.5.0.0',HostType='onPC'} end
 assert(A.ma_build_version()=='2.5.0.0')
 BuildDetails=nil;assert(A.ma_build_version()=='unbekannt')
-print('PASS: v0.36 gaps ignore append spacing, exact 170-hole span, repeated partial/full generation, no overwrite/range growth, empty targets, stable append raster, optional MA build readout')
+print('PASS: optional MA build readout')
 
 -- v0.39: visible names are no longer the ownership key. Old identities remain valid.
 local tc=A.default_config();tc.configured=1;tc.base=101
@@ -794,20 +686,8 @@ local function finish_ui(co)
     local ok,why=coroutine.resume(co);assert(ok,why)
     assert(coroutine.status(co)=='dead' and not active_base() and next(handlers)==nil)
 end
-tc.startup=2;tc.count=3;tc.step=10;tc.mode=2
-SetVar(nil,'MAOBS_ML31_CONFIG',A.encode(tc));local saves_before=stores()
-local co,base=begin_ui(function() tc=U.presets_ui(tc) end)
-assert(base.W==1080 and base.H<focus.H)
-local pool_label=assert(find_ui(base,'UIObject','All-Presetpool'))
-assert(pool_label.Font=='Regular18','Unexpected field-label font: '..tostring(pool_label.Font))
-local step=assert(find_ui(base,'Button','10'));assert(step.Enabled=='No')
-local called=input_calls;click(base,'10');assert(input_calls==called) -- disabled even if a signal leaks through
-click(base,'Hinten ergänzen');assert(step.Enabled=='Yes')
-entered={'7'};click(base,'10');assert(step.Text=='7')
-click(base,'Lücken ergänzen');assert(step.Enabled=='No')
-click(base,'All 4');click(base,'Speichern');finish_ui(co)
-assert(tc.pool==24 and tc.mode==2 and tc.step==7 and stores()==saves_before)
--- Setup labels and policies use the same numeric persistence format.
+tc.startup=2
+local co,base
 co,base=begin_ui(function() tc=U.setup(tc) end)
 assert(find_ui(base,'UIObject','Datenpool'))
 assert(not find_ui(base,'UIObject','Datenpool (nicht All-Pool)'))
@@ -816,7 +696,8 @@ click(base,'Bridge starten');click(base,'Speichern');finish_ui(co);assert(tc.sta
 co,base=begin_ui(function() U.main() end)
 assert(U.state.running and base.W==1120)
 assert(find_ui(base,'Button','Steuersequenz'))
-assert(find_ui(base,'UIObject','Vor Änderungen an Einrichtung oder Presets die Bridge stoppen.').Font=='Medium20')
+assert(not find_ui(base,'Button','Presets'))
+assert(find_ui(base,'UIObject','Vor Änderungen an der Einrichtung die Bridge stoppen.').Font=='Medium20')
 click(base,'Stoppen')
 local ok,why=coroutine.resume(co);assert(ok,why);base=assert(active_base());assert(not U.state.running)
 assert(find_ui(base,'Button','Starten'));click(base,'Schließen');finish_ui(co)
@@ -824,7 +705,7 @@ co,base=begin_ui(function() U.main() end);assert(U.state.running)
 click(base,'Schließen');finish_ui(co);assert(U.state.running);U.stop('Aus')
 -- Escape/external close cancels drafts without writing configuration.
 local saved_config=U.readvar('CONFIG')
-co,base=begin_ui(function() U.presets_ui(tc) end);base:Close();finish_ui(co)
+co,base=begin_ui(function() U.setup(tc) end);base:Close();finish_ui(co)
 assert(U.readvar('CONFIG')==saved_config)
 -- Context change while a form is open also cancels every pending edit.
 co,base=begin_ui(function() U.setup(tc) end)
@@ -841,7 +722,7 @@ U.setup(tc);native_fault=nil
 assert(not active_base() and next(handlers)==nil and #displayed==fallback_before+1)
 assert(displayed[#displayed].message_align_h==Enums.AlignmentH.Left)
 assert(not displayed[#displayed].message:find('nicht All-Pool',1,true))
-print('PASS: v0.39 native layouts, widths, complete command labels, emphasized hint, five All pools, dynamic gap spacing disable, input editing, preserved sender on close, Stop behavior, Escape/context cancel, callback cleanup, isolated fallback')
+print('PASS: native layouts, widths, complete command labels, emphasized hint, preserved sender on close, Stop behavior, Escape/context cancel, callback cleanup, isolated fallback')
 
 -- v0.40: exercise the public import entry, without the core's test export.
 -- A MA API failure during component evaluation used to prevent `return main`.
@@ -878,7 +759,7 @@ do
     assert(diagnostics[1]:find('stack traceback',1,true))
     -- The failed factory is retryable after the MA API becomes available.
     blocked=false;public.Bedienung()
-    assert(old_state.version=='0.42' and dialogs[#dialogs].title:find('Betrieb',1,true))
+    assert(old_state.version=='0.43' and dialogs[#dialogs].title:find('Betrieb',1,true))
     assert(not old_state.running and not old_state.ui)
     -- Already initialized runtime failures must not escape the entry either.
     blocked=true;public.Bedienung()
@@ -917,11 +798,16 @@ for _,display_width in ipairs({1280,960,800}) do
     assert(find_ui(base,'UIObject','Auszulesende Sequenz').Font=='Regular18')
     assert(find_ui(base,'UIObject','Beim Öffnen des Plugins').Font=='Regular18')
     click(base,'Abbrechen');finish_ui(co)
-    co,base=begin_ui(function() U.presets_ui(tc) end)
-    click(base,'Abbrechen');finish_ui(co)
 end
 co,base=begin_ui(function()
     U.box('Textprüfung','Änderungen · Öffnen · Für Farin und Bela.\n\n'..string.rep('Ü',90),{ui_rows={},ui_width=720})
 end)
 click(base,'Schließen');finish_ui(co)
 print('PASS: v0.42 normal field fonts, all native text boxes have line-based height/padding and valid UTF-8, complete labels/choices at 1280/960/800 display widths, safe wrapping of long words with umlauts')
+
+assert(loadfile('tests/auto_fades_cases.lua'))()(A,c,main,cueobject,commands,
+    function() return selection==initial_selection and next(groups)==nil and programmer[777].sentinel and programmer[3001]==nil end,
+    variables,function(kind,enabled)
+        if kind=='programmer' then programmer[3001]=enabled and {{absolute_value=123}} or nil
+        else fault=enabled and 'Store DataPool 1 Sequence 3' or nil end
+    end)

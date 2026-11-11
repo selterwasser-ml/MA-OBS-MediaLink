@@ -1,9 +1,9 @@
--- MA OBS MediaLink v0.42 BETA | Copyright © 2026 Oliver Cassel
+-- MA OBS MediaLink v0.43 BETA | Copyright © 2026 Oliver Cassel
 -- Für Farin und Bela.
 -- One pool plugin, two entry components (UI / startup), one shared runtime.
 -- OBS transport remains the tested 3+7 channel sACN layout.
 local _, componentName, signals, component_handle = ...
-local VERSION='0.42'
+local VERSION='0.43'
 local CONTROL_LABEL='MediaLink – Nicht löschen'
 local ui_display
 local PREFIX='MAOBS_ML31_'
@@ -68,10 +68,10 @@ local function writevar(key,value)
     local matches=actual==value or (type(value)=='number' and tonumber(actual)==value)
     assert(result~=false and result~=0 and matches,'Einstellung konnte nicht gespeichert werden: '..key)
 end
-local config_fields={'dp','main','fade','controller','pool','base','control','step','count','startup','mode'}
+local config_fields={'dp','main','fade','controller','control','startup'}
 local function default_config()
-    return {dp=1,main=3,fade=300,controller=301,pool=25,base=1000,control=900,
-        step=10,count=10,startup=3,mode=1,configured=0}
+    return {dp=1,main=3,fade=300,controller=301,control=900,
+        startup=3,configured=0}
 end
 local function encode(c)
     local parts={'v31'}
@@ -89,24 +89,17 @@ local function decode(text)
     return c
 end
 local function validate(c)
-    for _,key in ipairs({'dp','main','fade','controller','base','control'}) do
+    for _,key in ipairs({'dp','main','fade','controller','control'}) do
         assert(integer(c[key],1,999999),key..': ganze Zahl zwischen 1 und 999999 erforderlich')
     end
     assert(c.dp~=128,'Datenpool 128 ist für Preview reserviert. Einen Show-Datenpool wählen.')
-    assert(integer(c.mode,1,2),'Preset-Vorgehen ungültig')
-    assert(integer(c.pool,21,25),'All-Presetpool muss 21, 22, 23, 24 oder 25 sein')
-    assert(integer(c.step,1,1024),'Abstand muss 1 bis 1024 sein')
-    assert(integer(c.count,1,1024),'Anzahl muss 1 bis 1024 sein')
     assert(integer(c.startup,1,3),'Startoption ungültig')
-    assert(c.base+1023<=999999,'Startposition lässt keinen Bereich von 1024 Plätzen zu')
     assert(c.main~=c.control,'Lese- und Steuersequenz müssen verschieden sein')
     assert(c.fade~=c.controller,'Fade- und Steuer-Fixture müssen verschieden sein')
     return c
 end
 local function sequence(c,n) return one('DataPool '..c.dp..' Sequence '..n) end
-local function preset(c,slot) return one('DataPool '..c.dp..' Preset '..c.pool..'.'..slot) end
 local function seqaddr(c) return 'DataPool '..c.dp..' Sequence '..c.control end
-local function presetaddr(c,slot) return 'DataPool '..c.dp..' Preset '..c.pool..'.'..slot end
 local function ownership(c)
     return 'MA OBS MediaLink [DP'..c.dp..' S'..c.main..' F'..c.fade..' C'..c.controller..']'
 end
@@ -196,7 +189,6 @@ local function preflight(c)
     assert(ok,'CurrentChild der festen Lesesequenz ist auf dieser MA-Version nicht verfügbar')
     fixture(c.fade,{'VideoCrossfade'})
     fixture(c.controller,{'VideoSceneNumber','Dimmer','VideoTransitionToken'})
-    local dp=DataPool();assert(dp.PresetPools[c.pool],'All-Presetpool fehlt')
     verify_patch(c)
     return main
 end
@@ -209,18 +201,13 @@ end
 local function rawvalue(a)
     return type(a)=='table' and a[1] and tonumber(a[1].absolute_value) or nil
 end
-local function preset_index(c,object)
-    if not object then return nil end
-    local a=attrdata(object,c.fade,'VideoCrossfade');local raw=rawvalue(a)
+-- The logical positions 0..1023 retain the established 24-bit encoding.
+local function fade_index(a)
+    local raw=rawvalue(a)
     if not integer(raw,0,RAWMAX) then return nil end
-    local i=math.floor(raw*1023/RAWMAX+0.5)
-    if raw24(i)~=raw then return nil end
-    -- Slots define immutable logical positions, including deliberately empty gaps.
-    local slot=tonumber(prop(object,'no'))
-    if slot~=c.base+i then return nil end
-    local label=tostring(prop(object,'name') or '')
-    if label~=string.format('OBS %04d',i) and label~=string.format('OBS ML %04d',i) then return nil end
-    return i,raw
+    local index=math.floor(raw*1023/RAWMAX+0.5)
+    if raw24(index)~=raw then return nil end
+    return index,raw
 end
 local function parse_scene(note)
     note=tostring(note or '')
@@ -261,15 +248,8 @@ local function read_cue(c,cue)
     if not number then return nil,'Cue-Nummer nicht lesbar' end
     local part=cue[1];if not part then return nil,'Cue Part 0 fehlt' end
     local a=attrdata(part,c.fade,'VideoCrossfade')
-    local ref=type(a)=='table' and a.abs_preset
-    if not ref then return nil,'Fade-Preset muss ausdrücklich in Part 0 gespeichert sein; Tracking wird nicht aufgelöst' end
-    local slot=tonumber(prop(ref,'no'))
-    if not slot or slot<c.base or slot>c.base+1023 then return nil,'Fade-Preset liegt außerhalb des eingerichteten Bereichs' end
-    local expected=preset(c,slot)
-    if not expected or address(ref)~=address(expected) then return nil,'Fade-Preset liegt nicht im eingerichteten Pool' end
-    local index,raw=preset_index(c,ref)
-    if not index then return nil,'Fade-Preset hat keinen passenden Namen oder 24-Bit-Wert' end
-    if rawvalue(a)~=raw then return nil,'Gespeicherter Cue-Wert stimmt nicht mit dem Fade-Preset überein' end
+    local index,raw=fade_index(a)
+    if index==nil or a.abs_preset then return nil,'Automatischer Fade-Wert noch nicht abgeglichen' end
     local key=cue_key(c,number)
     return {key=key,number=number/1000,scene=scene,index=index,raw=raw,
         signature=cue_signature(number,scene,raw)}
@@ -323,59 +303,135 @@ local function isolated(c,id,fn)
     assert(clean,'Auswahl-Wiederherstellung fehlgeschlagen; Gruppe '..tostring(group)..' behalten: '..tostring(cleanup))
     assert(ok,why)
 end
-local function plan_presets(c,mode)
-    validate(c)
-    local highest=-1
-    for i=0,1023 do
-        local p=preset(c,c.base+i)
-        if p and preset_index(c,p)~=nil then highest=i end
-    end
-    local gaps=mode=='gaps'
-    -- Filling holes is independent of the append raster. Never silently grow
-    -- the range when there are no holes (or no managed presets to begin with).
-    local step=gaps and 1 or c.step
-    local start=gaps and 0 or math.floor(highest/c.step+1)*c.step
-    local finish=gaps and highest or 1023
-    local result={items={},conflicts={},existing=0,start=start,mode=mode,
-        step=step,highest=highest,finish=finish}
-    for i=start,finish,step do
-        local slot=c.base+i;local p=preset(c,slot)
-        if p then
-            if preset_index(c,p)~=nil then result.existing=result.existing+1
-            else result.conflicts[#result.conflicts+1]=slot end
-        elseif #result.items<c.count then
-            result.items[#result.items+1]={slot=slot,index=i,raw=raw24(i)}
+-- Read explicit Part 0 data only. The dedicated Fade-Fixture is managed in
+-- this sequence; other fixtures, notes, cue timing and other parts are untouched.
+local function plan_fades(c)
+    local main=sequence(c,c.main);assert(main,'Lesesequenz fehlt')
+    local rows,remove={},{}
+    for _,cue in ipairs(main:Children()) do
+        local number=integer(prop(cue,'no'),1,999999999)
+        if number then
+            local scene,why=parse_scene(prop(cue,'Note'))
+            local part=cue[1]
+            local a=part and attrdata(part,c.fade,'VideoCrossfade')
+            if scene then
+                assert(part,'Cue '..(number/1000)..': Part 0 fehlt')
+                for i,other in ipairs(cue:Children()) do
+                    assert(i==1 or not attrdata(other,c.fade,'VideoCrossfade'),
+                        'Cue '..(number/1000)..': Fade-Fixture nur in Part 0 speichern')
+                end
+                rows[#rows+1]={cue=cue,number=number,index=fade_index(a),before=a}
+            elseif not why and rawvalue(a)~=nil then
+                remove[#remove+1]={cue=cue,number=number,before=a}
+            end
         end
-        if #result.items==c.count then break end
     end
-    if #result.items==0 then
-        if gaps and highest<0 then
-            result.reason='Noch keine passenden MediaLink-Presets im Zielbereich. Zuerst mit Hinten ergänzen einen Bereich anlegen.'
-        elseif gaps then
-            result.reason='Keine freien Zwischenplätze im bereits angelegten Bereich. Zum Vergrößern Hinten ergänzen wählen.'
-        else result.reason='Keine freien Rasterpositionen mehr im Bereich der 1024 logischen Positionen.' end
+    assert(#rows<=1024,'Mehr als 1024 OBS-Cues: keine eindeutigen Fade-Werte verfügbar')
+    table.sort(rows,function(a,b) return a.number<b.number end)
+    local rebuild=false;local previous=-1
+    for _,row in ipairs(rows) do
+        if row.index~=nil then
+            if row.index<=previous then rebuild=true end
+            previous=row.index
+        end
     end
-    return result
+    -- Keep existing anchors. Allocate a run of newly inserted cues recursively
+    -- at the midpoint; a single insertion between 10 and 20 receives 15.
+    local function fill(first,last,lo,hi)
+        if first>last then return true end
+        if hi-lo-1<last-first+1 then return false end
+        local mid=math.floor((first+last)/2)
+        local value=math.floor((lo+hi)/2)
+        value=math.max(lo+mid-first+1,math.min(value,hi-(last-mid)-1))
+        rows[mid].target=value
+        return fill(first,mid-1,lo,value) and fill(mid+1,last,value,hi)
+    end
+    if not rebuild then
+        local i=1;local lo=-1
+        while i<=#rows do
+            if rows[i].index~=nil then rows[i].target=rows[i].index;lo=rows[i].index;i=i+1
+            else
+                local first=i
+                while i<=#rows and rows[i].index==nil do i=i+1 end
+                if i>#rows then
+                    -- Fresh sequences and append operations use steps of ten.
+                    local value=lo<0 and 0 or lo
+                    for j=first,i-1 do value=value+10;rows[j].target=value end
+                    if value>1023 then rebuild=true end
+                elseif not fill(first,i-1,lo,rows[i].index) then rebuild=true end
+            end
+        end
+    end
+    if rebuild then
+        -- At full capacity use every position, including both endpoints.
+        local step=math.min(10,math.floor(1023/math.max(#rows,1)))
+        for i,row in ipairs(rows) do row.target=step>0 and i*step or i-1 end
+    end
+    local writes={}
+    for _,row in ipairs(rows) do
+        if row.index~=row.target or (row.before and row.before.abs_preset) then
+            row.raw=raw24(row.target);writes[#writes+1]=row
+        end
+    end
+    return {rows=rows,writes=writes,remove=remove,rebuilt=rebuild}
 end
-local function generate(c,plan)
-    assert(#plan.items>0,'Keine freien Positionen im 1024er-Bereich')
-    local count=0
-    for _,item in ipairs(plan.items) do
-        assert(not preset(c,item.slot),'Position inzwischen belegt: '..item.slot)
-        isolated(c,c.fade,function()
-            -- Non-zero priming preserves the tested zero-position workaround.
-            if item.raw==0 then cmd('Attribute "VideoCrossfade" At Absolute Decimal24 16400') end
-            cmd('Attribute "VideoCrossfade" At Absolute Decimal24 '..item.raw)
-            assert(not preset(c,item.slot),'Position inzwischen belegt')
-            cmd('Store '..presetaddr(c,item.slot)..' /Selective /ActiveForSelected /KeepActivation /NoConfirmation /InputFilter "No"')
-            cmd('Label '..presetaddr(c,item.slot)..' "'..string.format('OBS ML %04d',item.index)..'"')
-            assert(preset_index(c,preset(c,item.slot))==item.index,'Preset-Verifikation fehlgeschlagen: '..item.slot)
-        end)
-        count=count+1
-        if count%8==0 then coroutine.yield(0.03) end
+local function sync_fades(c)
+    local plan=plan_fades(c)
+    if #plan.writes==0 and #plan.remove==0 then return plan end
+    local function clone(value)
+        if type(value)~='table' then return value end
+        local result={};for key,item in pairs(value) do result[key]=clone(item) end;return result
     end
-    return count
+    local function same(a,b)
+        if type(a)~='table' or type(b)~='table' then return a==b end
+        for key,value in pairs(a) do if not same(value,b[key]) then return false end end
+        for key in pairs(b) do if a[key]==nil then return false end end
+        return true
+    end
+    local function timing(a)
+        local result={}
+        if type(a)=='table' then
+            for key,value in pairs(a) do
+                if type(key)=='string' and (key:lower():find('fade',1,true) or key:lower():find('delay',1,true)) then
+                    result[key]=clone(value)
+                elseif type(key)=='number' and type(value)=='table' then
+                    for name,time in pairs(timing(value)) do result[tostring(key)..':'..name]=time end
+                end
+            end
+        end
+        return result
+    end
+    isolated(c,c.fade,function()
+        local function store(row,remove)
+            local target='DataPool '..c.dp..' Sequence '..c.main..' Cue '..string.format('%.3f',row.number/1000)..' Part 0'
+            local raw=remove and 0 or row.raw
+            local before_timing=timing(attrdata(row.cue[1],c.fade,'VideoCrossfade'))
+            -- Activate the absolute value only; never activate fade/delay layers.
+            if raw==0 then cmd('Attribute "VideoCrossfade" At Absolute Decimal24 16400') end
+            cmd('Attribute "VideoCrossfade" At Absolute Decimal24 '..raw)
+            if S.running then S.writes_this_tick=(S.writes_this_tick or 0)+1 end
+            cmd('Store '..target..(remove and ' /Remove' or ' /Merge')..
+                ' /Programmer /ActiveForSelected /KeepActivation /InputFilter "No" /CueOnly "Off" /TrackingShield "Off" /NoConfirmation')
+            local after=attrdata(row.cue[1],c.fade,'VideoCrossfade')
+            assert(remove and rawvalue(after)==nil or not remove and rawvalue(after)==raw and not after.abs_preset,
+                'Cue '..(row.number/1000)..': automatischer Fade-Wert konnte nicht bestätigt werden')
+            if not remove then
+                local after_timing=timing(after)
+                for key,value in pairs(before_timing) do
+                    assert(same(after_timing[key],value),'Cue '..(row.number/1000)..': individuelle Zeit wurde beim Speichern verändert')
+                end
+                for key,value in pairs(after_timing) do
+                    assert(same(before_timing[key],value),'Cue '..(row.number/1000)..': unerwartete individuelle Zeit nach dem Speichern')
+                end
+            end
+        end
+        for _,row in ipairs(plan.remove) do store(row,true) end
+        for _,row in ipairs(plan.writes) do store(row,false) end
+    end)
+    if plan.rebuilt then log('Fade-Werte für '..#plan.rows..' OBS-Cues neu verteilt') end
+    return plan
 end
+
 local function sequence_allowed(c)
     local control=sequence(c,c.control)
     if control then assert(control_owned(c,control),
@@ -637,12 +693,14 @@ tick=function(epoch)
         assert(encode(S.config)==readvar('CONFIG'),'Konfiguration auf anderer Station geändert; neu starten')
         current_pool(S.config);sequence_allowed(S.config)
         if tonumber(readvar('HEARTBEAT'))~=os.time() then writevar('HEARTBEAT',os.time()) end
-        dispatch(S.config)
         S.ticks=(S.ticks or 0)+1
         if S.ticks%10==0 then
             verify_patch(S.config);control_integrity(S.config)
+            -- Finish and verify source values before preparing/dispatching metadata.
+            sync_fades(S.config)
             S.items,S.issues=inventory(S.config)
         end
+        dispatch(S.config)
         if S.items and S.writes_this_tick==0 then sync_one(S.config,S.items) end
     end,debug.traceback)
     S.in_tick=false
@@ -674,6 +732,11 @@ local function start(c)
         writevar('SENDER',S.owner)
         writevar('HEARTBEAT',os.time())
         writevar('LAST',1)
+        -- Drop retired settings once the original configuration is still current.
+        local saved=readvar('CONFIG')
+        if saved and saved~=encode(c) and encode(decode(saved))==encode(c) then
+            writevar('CONFIG',encode(c))
+        end
         if sequence(c,c.control) then label_control(c) end
         S.running=true
         schedule(S.epoch)
@@ -965,7 +1028,7 @@ local function setup(c)
     local inputs={};for _,f in ipairs(fields) do inputs[#inputs+1]={name=f[1],value=tostring(c[f[2]]),whitefilter='0123456789',maxTextLength=6} end
     local answer=box('Einrichtung',
         'Die auszulesende Sequenz enthält die OBS-Cues und wird unabhängig von der ausgewählten Sequenz verwendet.\n\n'..
-        'Fade-Fixture und Steuer-Fixture müssen passend gepatcht sein. Presets werden im Bereich Presets eingerichtet.',
+        'Fade-Fixture und Steuer-Fixture müssen passend gepatcht sein. OBS-Cues erhalten ihre Fade-Werte automatisch in Part 0.',
         {ui_rows={{name=fields[1][1]},{name=fields[2][1]},{name=fields[3][1]},
             {name=fields[4][1]},{name=fields[5][1]},{name='06 Beim Öffnen des Plugins'}},
          inputs=inputs,selectors={{name='06 Beim Öffnen des Plugins',type=1,selectedValue=c.startup,
@@ -980,67 +1043,6 @@ local function setup(c)
         'Vor dem Start unter Prüfen / Diagnose die Fixtures und den Patch kontrollieren.\n\n'..
         'Eine bereits belegte Sequenz lässt sich unter Steuersequenz prüfen und übernehmen.')
     return nextc
-end
-local function presets_ui(c)
-    require_stopped()
-    local answer=box('Presets',
-        'Die Anzahl bestimmt, wie viele neue Presets zusätzlich erstellt werden. Vorhandene Presets bleiben erhalten.\n\n'..
-        'Hinten ergänzen: Neue Presets werden im gewählten Abstand angehängt.\n\n'..
-        'Lücken ergänzen: Freie Positionen bis zum letzten vorhandenen MediaLink-Preset werden gefüllt. Der Bereich wird nicht erweitert.\n\n'..
-        'Eine Änderung der Startposition verschiebt keine vorhandenen Presets.\n\n'..
-        'Speichern sichert die Einstellungen. Vorschau zeigt die geplanten Presets.',
-        {ui_rows={{name='04 All-Presetpool'},{name='01 Erste Presetposition'},{name='02 Anzahl zusätzlich'},
-            {name='05 Vorgehen'},{name='03 Abstand beim Anhängen',enabled_when=function(r) return r.selectors['05 Vorgehen']~=2 end}},
-         inputs={{name='01 Erste Presetposition',value=tostring(c.base),whitefilter='0123456789',maxTextLength=6},
-            {name='02 Anzahl zusätzlich',value=tostring(c.count),whitefilter='0123456789',maxTextLength=4},
-            {name='03 Abstand beim Anhängen',value=tostring(c.step),whitefilter='0123456789',maxTextLength=4}},
-         selectors={{name='04 All-Presetpool',type=0,selectedValue=c.pool,
-            values={['All 1']=21,['All 2']=22,['All 3']=23,['All 4']=24,['All 5']=25}},
-            {name='05 Vorgehen',type=1,selectedValue=c.mode,values={['Hinten ergänzen']=1,['Lücken ergänzen']=2}}},
-         commands={{value=1,name='Vorschau'},{value=2,name='Speichern'},{value=0,name='Abbrechen'}}})
-    if not answer.success or answer.result==0 then return c end
-    local nextc=copy(c)
-    nextc.base=tonumber(answer.inputs['01 Erste Presetposition'])
-    nextc.count=tonumber(answer.inputs['02 Anzahl zusätzlich']);nextc.step=tonumber(answer.inputs['03 Abstand beim Anhängen'])
-    nextc.pool=tonumber(answer.selectors['04 All-Presetpool']);nextc.mode=tonumber(answer.selectors['05 Vorgehen'])
-    validate(nextc)
-    if answer.result==2 then
-        writevar('CONFIG',encode(nextc));S.config=copy(nextc)
-        box('Presets','Einstellungen gespeichert. Es wurden keine Presets erzeugt oder verändert.')
-        return nextc
-    end
-    preflight(nextc)
-    local mode=nextc.mode==2 and 'gaps' or 'append'
-    local plan=plan_presets(nextc,mode)
-    local lines={'Ziel: All '..(nextc.pool-20)..' · Startposition '..nextc.base,
-        'Neu möglich: '..#plan.items..' / angefordert: '..nextc.count,
-        'Belegte fremde Plätze übersprungen: '..#plan.conflicts}
-    if mode=='gaps' and plan.highest>=0 then
-        lines[#lines+1]='Lückenbereich: '..nextc.pool..'.'..nextc.base..' bis '..nextc.pool..'.'..(nextc.base+plan.highest)
-    elseif mode~='gaps' then lines[#lines+1]='Abstand beim Anhängen: '..nextc.step end
-    if plan.reason then lines[#lines+1]=plan.reason end
-    for i,item in ipairs(plan.items) do
-        log('VORSCHAU '..presetaddr(nextc,item.slot)..' = '..item.raw)
-        if i<=12 then lines[#lines+1]=nextc.pool..'.'..item.slot..' → OBS ML '..string.format('%04d',item.index) end
-    end
-    for i,slot in ipairs(plan.conflicts) do
-        log('BELEGT '..presetaddr(nextc,slot)..' – bleibt unverändert')
-        if i<=8 then lines[#lines+1]='Belegt: '..nextc.pool..'.'..slot end
-    end
-    if #plan.items>12 or #plan.conflicts>8 then lines[#lines+1]='… vollständige Liste im System Monitor' end
-    if #plan.items==0 then box('Preset-Vorschau',table.concat(lines,'\n'));return c end
-    local yes=box('Preset-Vorschau',table.concat(lines,'\n'),
-        {commands={{value=1,name='Jetzt erzeugen'},{value=0,name='Abbrechen'}}})
-    if yes.success and yes.result==1 then
-        S.busy=true
-        local ok,n=xpcall(function() return generate(nextc,plan) end,debug.traceback)
-        S.busy=false
-        if not ok then error(n,0) end
-        writevar('CONFIG',encode(nextc));S.config=copy(nextc)
-        box('Presets',n..' neue Presets erzeugt. Vorhandene Presets bleiben erhalten.')
-        return nextc
-    end
-    return c
 end
 local function ma_build_version()
     local build=safe(BuildDetails)
@@ -1092,7 +1094,7 @@ local function diagnosis(c)
         for _,issue in ipairs(issues) do log(issue) end
     end
     lines[#lines+1]='Cue-Einrichtung\nCue-Note: OBS:1 oder OBS:12, ohne Leerzeichen und führende Nullen. '..
-        'Die Nummer bezeichnet die Position in der OBS-Szenenliste.\nDas Fade-Preset in Cue Part 0 speichern.'
+        'Die Nummer bezeichnet die Position in der OBS-Szenenliste.\nDer Fade-Wert wird automatisch in Cue Part 0 gespeichert. IndivFades können dort bearbeitet werden.'
     lines[#lines+1]='Betriebshinweise\nEin erneutes Goto auf dieselbe aktive Cue löst keinen neuen Szenenaufruf aus. '..
         'Bei einem Schreibfehler wird die Bridge angehalten.'
     local answer=box('Diagnose',table.concat(lines,'\n\n'),{commands={{value=1,name='Sender freigeben'},{value=0,name='Schließen'}}})
@@ -1137,16 +1139,15 @@ local function main(display_handle,argument)
                 '\nSteuersequenz: '..c.control,
                 {ui_rows={},ui_width=1120,ui_status=function() return S.status end,
                  ui_action_name=function() return S.running and 'Stoppen' or 'Starten' end,
-                 ui_hint='Vor Änderungen an Einrichtung oder Presets die Bridge stoppen.',
+                 ui_hint='Vor Änderungen an der Einrichtung die Bridge stoppen.',
                  commands={{value=1,name=S.running and 'Stoppen' or 'Starten'},
-                    {value=2,name='Einrichtung'},{value=3,name='Presets'},
+                    {value=2,name='Einrichtung'},
                     {value=4,name='Steuersequenz'},{value=5,name='Prüfen / Diagnose'},
                     {value=6,name='Über'},{value=0,name='Schließen'}}})
             if gv()~=dialog_context or not result.success or result.result==0 then break end
             local action_ok,problem=xpcall(function()
                 if result.result==1 then if S.running then stop('Aus') else start(c) end
                 elseif result.result==2 then c=setup(c)
-                elseif result.result==3 then c=presets_ui(c)
                 elseif result.result==4 then adoption(c)
                 elseif result.result==5 then diagnosis(c)
                 elseif result.result==6 then about() end
@@ -1160,10 +1161,10 @@ end
 -- Export a narrow seam for the Lua test adapter (not enabled in a MA show).
 if rawget(_G,'MAOBS_TEST_MODE') then
     return {raw24=raw24,validate=validate,default_config=default_config,encode=encode,decode=decode,
-        plan_presets=plan_presets,generate=generate,read_cue=read_cue,inventory=inventory,
+        plan_fades=plan_fades,sync_fades=sync_fades,read_cue=read_cue,inventory=inventory,
         preflight=preflight,verify_patch=verify_patch,revision=revision,find_revision=find_revision,isolated=isolated,
         start=start,stop=stop,tick=tick,startup=startup,main=main,state=S,adoption=adoption,
-        setup=setup,presets_ui=presets_ui,clean_error=clean_error,
+        setup=setup,clean_error=clean_error,
         readvar=readvar,writevar=writevar,clearvar=clearvar,diagnosis=diagnosis,
         dmx16=dmx16,cue_key=cue_key,decode_revision_label=decode_revision_label,
         revision_label=revision_label,matching_revision=matching_revision,ma_build_version=ma_build_version,
@@ -1171,3 +1172,4 @@ if rawget(_G,'MAOBS_TEST_MODE') then
         native_dialog=native_dialog,box=box}
 end
 return main
+
