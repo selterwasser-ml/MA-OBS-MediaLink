@@ -1,0 +1,14 @@
+{
+  "repository": "selterwasser-ml/MA-OBS-MediaLink",
+  "tag": "v0.46.0-beta.2",
+  "title": "MA OBS MediaLink v0.46 BETA 2 / grandMA3 v0.43 – Automatische Cue-Werte",
+  "obsPluginVersion": "0.46.0",
+  "maPluginVersion": "0.43",
+  "sourceCommit": "2f182d5fcd22b84dcc0cea7e1144ce97cea14004",
+  "buildRunId": 43027798353,
+  "artifactId": 13860605267,
+  "artifactSha256": "714ad2d1536bdd0b19f92b8c6a6830de1bcc416854fef9737277e4355e12f839",
+  "setupSha256": "5f0495b533fa61326920cc8b6b929f4515d3422c5b47a44a5b9b32ad8b139d7c",
+  "testedOBS": "Für diesen MA043-Funktionstest nicht gesondert dokumentiert",
+  "testedGrandMA3": "Für diesen MA043-Funktionstest nicht gesondert dokumentiert"
+}
