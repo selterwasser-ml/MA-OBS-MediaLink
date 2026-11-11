@@ -1,0 +1,44 @@
+name: MA043 Pre-Release-Entwurf
+on:
+  push:
+    branches: [ma043-automatic-cue-fades]
+    paths:
+      - '.github/workflows/ma043-release-draft.yml'
+      - 'releases/ma043.json'
+      - 'releases/v0.46.0-beta.2.md'
+permissions:
+  contents: read
+concurrency:
+  group: medialink-ma043-release-draft
+  cancel-in-progress: false
+jobs:
+  draft:
+    name: Geprueften MA043-Build als Entwurf ablegen
+    if: github.repository == 'selterwasser-ml/MA-OBS-MediaLink'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Release-Pruefungen ausfuehren
+        run: python -m unittest discover -s tools -p test_release_draft.py -v
+      - name: Festgelegten Build als unveroeffentlichten Pre-Release vorbereiten
+        run: |
+          cp releases/ma043.json releases/current.json
+          python tools/release_draft.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Gepruefte Release-Dateien sichern
+        uses: actions/upload-artifact@v4
+        with:
+          name: MA-OBS-MediaLink-v046-beta2-MA043-release
+          path: dist/beta-release/*
+          if-no-files-found: error
+          retention-days: 90

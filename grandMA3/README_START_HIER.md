@@ -1,138 +1,110 @@
-# MA OBS MediaLink – MA-Seite v0.42 BETA
+# MA OBS MediaLink – grandMA3 v0.43 BETA
 
-Szenen, Video und Audio aus grandMA3 steuern.
+Testversion vom 11. November 2026. Grundlage: GitHub main
+`3a49dc48d842e37e707bec3a287991257389ca42` (MA v0.42, OBS v0.46).
+Der OBS-Teil benötigt für diese Änderung keinen neuen Build; das bestehende
+3+7-Kanal-Protokoll und die beiden Fixtureprofile bleiben erhalten.
 
-Ein Plugin mit den Bereichen Betrieb, Einrichtung, Presets, Steuersequenz, Diagnose und Über. Diese unveränderte MA-Version gehört zu den Paketen mit OBS v0.45 und v0.46 sowie den beiden mitgelieferten Fixtureprofilen.
+## Import und Einrichtung
 
-Copyright © 2026 Oliver Cassel
+1. Die neue Version zunächst in einer Showkopie prüfen.
+2. `MA3/MA_OBS_MediaLink.xml` und die gleichnamige Lua-Datei gemeinsam
+   in den MA-Plugin-Importordner legen. XML importieren; beide Komponenten
+   (Bedienung und Autostart) gehören zu demselben Plugin.
+3. Unter Einrichtung Datenpool, auszulesende Sequenz, Fade-Fixture,
+   Steuer-Fixture, Steuersequenz und Startverhalten festlegen.
+   Bestehende Einstellungen werden übernommen; frühere Vergabeeinstellungen entfallen.
+4. Fixtures wie bisher patchen, siehe `fixtures/README.md`. Diagnose prüfen.
+5. An den gewünschten Cues eine Note wie `OBS:1` oder `OBS:12` eintragen.
+   Die Zahl bezeichnet weiterhin die Position in der OBS-Szenenliste.
+6. Bridge starten. Beim ersten Timerlauf und danach ungefähr einmal pro
+   Sekunde werden direkte Fade-Werte in Cue Part 0 abgeglichen.
 
-*Für Farin und Bela.*
+## Automatische Werte
 
-Diese Beta-Version befindet sich in Entwicklung.
+Eine neue Sequenz erhält zunächst 10, 20, 30 usw. Zwischen vorhandenen
+Werten werden freie Ganzzahlen genutzt: Zwischen 10 und 20 zuerst 15.
+Mehrere gleichzeitig eingefügte Cues werden in ihrer Cue-Reihenfolge verteilt.
+Bestehende Werte bleiben erhalten, solange sie eindeutig und aufsteigend sind.
+Beim Anhängen wird zunächst mit Abstand 10 weitergearbeitet.
 
-## Darstellung in v0.42
+Ist die benötigte Lücke voll, reicht der Bereich am Ende nicht mehr oder
+sind durch Kopieren/Verschieben doppelte bzw. vertauschte Werte entstanden,
+wird die gesamte Lesesequenz neu verteilt. Bis 102 Cues sind Abstände von 10
+möglich; danach verwendet die Neuverteilung kleinere Abstände. Es stehen
+weiterhin genau 1024 logische Positionen (0–1023) mit der bisherigen
+24-Bit-Skalierung zur Verfügung. Bei 1024 Cues werden alle Positionen benutzt.
+Mehr als 1024 gültige OBS-Cues werden vor dem Schreiben abgewiesen.
+Die logischen Zahlen sind keine Prozentwerte und keine Fadezeiten.
 
-Die Feldbeschriftungen verwenden jetzt ausdrücklich die normale Schriftgröße. Textfelder, Auswahlbuttons und Befehlsbuttons werden anhand ihrer Zeilenzahl bemessen und erhalten mehr Platz oberhalb und unterhalb des Texts. Lange Beschriftungen werden umgebrochen. Der Zeilenumbruch zählt UTF-8-Zeichen und trennt Umlaute nicht in einzelne Bytes.
+Wird eine OBS-Note entfernt, wird beim nächsten Abgleich der ausdrücklich
+gespeicherte VideoCrossfade-Wert des eingerichteten Fade-Fixtures aus Part 0
+entfernt. Die Nummer ist anschließend wieder frei. Ohne ausdrücklich
+gespeicherten Wert gilt das normale MA-Tracking weiter; das Entfernen
+speichert also keinen Null- oder Release-Wert. Eine ungültige OBS-Note wird
+als Diagnoseproblem behandelt und ist keine Löschanforderung.
 
-Die geschützte Initialisierung und die Compilerkorrektur aus v0.41 bleiben erhalten. UI-Einstellungen und gespeicherte Einrichtung werden übernommen.
+Das Fade-Fixture ist in dieser Lesesequenz für MediaLink reserviert. Seine
+Werte werden vom Plugin verwaltet, auch wenn sie zuvor manuell angelegt wurden.
+Die direkte Zuordnung in den Cues bleibt beim Neustart erhalten.
 
-## Import und erster Start
+## IndivFades und vorhandene Shows
 
-1. Die bisherige Bridge stoppen. Vorhandene Presets und Steuersequenzen erhalten.
-2. `MA3/MA_OBS_MediaLink.xml` und `MA3/MA_OBS_MediaLink.lua` gemeinsam in den Plugin-Ordner der MA kopieren und die XML importieren. Für den ersten Test einen freien Plugin-Pooleintrag verwenden. Es bleibt ein Pool-Plugin mit zwei internen Komponenten. Alte und neue Version nicht parallel aufrufen.
-3. Das Plugin öffnen und unter Einrichtung die auszulesende Sequenz, beide Fixtures und die Steuersequenz prüfen. Die bisherigen gespeicherten Einstellungen werden übernommen.
-4. Unter Presets den All-Pool, den Positionsbereich und die Erzeugungsoptionen einstellen. Vorschau zeigt den Plan; erst Jetzt erzeugen erstellt Presets. Speichern allein erzeugt keine Presets.
-5. Unter Prüfen / Diagnose den Patch und die OBS-Cues kontrollieren. Anschließend die Bridge starten. Das Bedienfenster darf geschlossen werden; die Bridge läuft weiter.
-6. Einrichtung und gewünschten Start-/Stop-Zustand mit der Show speichern.
+Das Fade-Fixture bleibt normal auswählbar. IndivFades und individuelle Delays
+können in den Cues bearbeitet werden. Neue Werte werden gezielt mit Merge
+gespeichert; das Plugin aktiviert nur den absoluten Wert, keine Zeitschicht.
+Vorhandene Fade-/Delay-Felder werden nach dem Schreiben auf Erhalt geprüft.
+Cue-Namen, Notes, allgemeine Cue-Zeiten und andere Fixtures werden nicht
+bearbeitet. Das Fade-Fixture gehört in Part 0; Daten dieses Fixtures in
+weiteren Parts führen zu einer Meldung statt einer stillen Änderung.
 
-Ein bereits laufender Betrieb wird beim erneuten Öffnen des Plugins erhalten. Für Änderungen an Einrichtung, Presets oder Steuersequenz zuerst im Bedienfenster stoppen.
+Solange das Fade-Fixture Programmer-Daten enthält, wartet ein erforderlicher
+Abgleich. Das Plugin leert keinen fremden Programmer und stellt die Auswahl
+über eine temporäre Gruppe wieder her. Für einen automatischen Abgleich die
+Bearbeitung des Fade-Fixtures im Programmer abschließen und freigeben.
 
-## Bedienoberfläche
+Alte Referenzen werden in direkte Werte umgewandelt. Vorhandene Poolobjekte
+werden dabei nicht gelöscht, da sie auch außerhalb der Lesesequenz verwendet
+sein können. Der neue Betrieb erzeugt, benötigt und verwaltet keine solchen
+Poolobjekte mehr; die frühere Bedienseite und ihre Einstellungen entfallen.
 
-Betrieb, Einrichtung und Presets verwenden native MA-Dialogelemente mit linksbündigen Texten, klaren Absätzen und ausreichend breiten Eingabefeldern. Der Betriebshinweis zum Stoppen wird hervorgehoben. Bei schmaleren Anzeigen werden die Betriebsbuttons auf zwei Reihen verteilt. Auf sehr kleinen Anzeigen wird bei Bedarf der kompakte MA-Standarddialog verwendet.
+Quellwerte werden vor dem Versand der passenden Steuerdaten abgeglichen.
+Bei einem Schreib- oder Rücklesefehler stoppt die Bridge; es gibt keine
+automatische Wiederholung des fehlgeschlagenen Schreibvorgangs. Bereits
+ausgeführte Änderungen werden bei einem späteren Fehler nicht automatisch
+zurückgerollt. Ursache prüfen, dann die Bridge gezielt neu starten.
+Eine Neuverteilung ändert nicht durch sich selbst die bereits aktive Szene.
 
-Die Diagnose enthält getrennte Abschnitte für Status, Einrichtung, Sender, Fehler und Cue-Einrichtung. Technische Detaildaten stehen im System Monitor.
+## Teststand und Praxistest
 
-## Einrichtung
+Automatische Tests unter Lua 5.4 bestanden: Vergabe, Zwischenwerte, volle
+Lücken, Neuverteilung, Löschen/Wiederverwenden, Kopieren/Verschieben,
+Neustart, Umstieg, IndivFades im Testadapter, andere Fixture-Daten,
+1024 Cues und Überlauf, 600 Bearbeitungszyklen, Schreib-/Rücklesefehler,
+Sender-Sperre, Steuerdaten, Startverhalten und Oberfläche. Die importierbare
+Lua-Datei enthält nachweislich genau den aktuellen Kern.
 
-| Einstellung | Bedeutung |
-|---|---|
-| Datenpool | Datenpool mit den verwendeten Sequenzen und Presets; während des Betriebs aktiv lassen |
-| Auszulesende Sequenz | Feste Sequenz mit den OBS-Cues; unabhängig von der aktuell ausgewählten Sequenz |
-| Fade-Fixture | MA OBS MediaLink Fade mit VideoCrossfade in 24 Bit |
-| Steuer-Fixture | MA OBS MediaLink Steuerung für Szene, Endwert und Ereigniskennung |
-| Steuersequenz | Für MediaLink verwendete Sequenz; muss sich von der Lesesequenz unterscheiden |
-| Beim Öffnen des Plugins | Verhalten beim Aufruf des Plugin-Pooleintrags |
+Der Anwender hat v0.43 am 11. November 2026 ausprobiert und die Funktion
+mit „funktioniert top“ bestätigt. Der genaue Testumfang und die verwendeten
+Versionen wurden für diesen Durchlauf nicht gesondert dokumentiert.
+Der Adapter bildet weder den MA-Store-/Tracking-Mechanismus noch physische
+DMX-Ausgabe oder zeitgleiche Änderungen anderer Stationen vollständig ab.
+Vor allem Merge mit bestehenden IndivFades und das Entfernen in einer
+getrackten Sequenz müssen auf der eingesetzten MA-Version geprüft werden.
 
-Speichern prüft die Eingaben. Fixtures, Patch und Cue-Zuordnungen lassen sich anschließend unter Prüfen / Diagnose kontrollieren. Der Patch wird dabei nicht verändert.
+Für weitere gezielte Praxistests: OBS-Cues mit verschiedenen IndivFades anlegen,
+Bridge starten, Cue zwischen 10 und 20 einfügen, Note entfernen und wieder
+setzen, eine Lücke ausschöpfen und anschließend neu starten. Werte,
+IndivFades, Tracking und Szenenaufrufe dabei kontrollieren. Änderungen und
+Neuverteilungen zunächst außerhalb laufender Übergänge prüfen.
 
-Beide Fixtures werden passend aufeinanderfolgend im selben Universum gepatcht:
+## Quellcode und Tests
 
-| Offset zur OBS-Startadresse | Inhalt | Breite |
-|---|---|---|
-| +0 bis +2 | VideoCrossfade | 24 Bit |
-| +3 bis +4 | VideoSceneNumber | 16 Bit |
-| +5 bis +7 | Dimmer als Endwert | 24 Bit |
-| +8 bis +9 | VideoTransitionToken | 16 Bit |
+Kern: `source/medialink_core.lua`.
+Erzeugen: `python grandMA3/tools/build_plugin.py`.
+Konsistenz: `python grandMA3/tools/build_plugin.py --check`.
+Regressionen: im Ordner `grandMA3` mit Lua 5.4 oder neuer
+`lua tests/test_medialink.lua` ausführen.
 
-Universum und Startadresse in der Diagnose müssen den OBS-Einstellungen entsprechen. Für den Zehn-Kanal-Block sind Startadressen von 1 bis 503 möglich.
-
-## Verhalten beim Öffnen
-
-| Auswahl | Verhalten bei gestoppter Bridge |
-|---|---|
-| Bridge starten | Die gespeicherte Einrichtung prüfen und die Bridge starten |
-| Nur Bedienfenster öffnen | Das Fenster öffnen; die Bridge bleibt zunächst aus |
-| Letzten Zustand wiederherstellen | Den mit der Show gespeicherten Start-/Stop-Zustand anwenden |
-
-Läuft die Bridge bereits, bleibt sie bei allen drei Einstellungen aktiv. Das erneute Öffnen setzt weder die aktuelle Cue noch die Zuordnung zurück. Stoppen wirkt innerhalb des geöffneten Bedienfensters weiter; die gewählte Startoption wird erst beim nächsten Öffnen erneut angewandt. Ein fehlgeschlagener automatischer Start lässt das Bedienfenster mit der Fehlermeldung erreichbar.
-
-Die Option bezieht sich auf das Öffnen des Plugins. Sie startet das Plugin auf einer Hardwarekonsole nicht selbst beim Einschalten. Die Show speichert Einrichtung und gewünschten Zustand; das Fortbestehen eines laufenden Lua-Timers beim Laden einer Show ist nicht garantiert. Falls die Bridge nach dem Laden nicht weiterläuft, das Plugin einmal öffnen.
-
-### Optionaler onPC-Aufruf
-
-Die zweite interne Komponente kann die Startoption ohne Bedienfenster anwenden:
-
-```text
-Plugin <Nummer>.2
-```
-
-MA dokumentiert für onPC den Programmstartparameter:
-
-```text
-HOSTTYPE=onPC RUNPLUGIN=\"MA_OBS_MediaLink.xml\"-2
-```
-
-Die Plugin-Datei muss in der passenden Installation vorhanden sein. Dieser Aufruf versucht bis zu 20 Sekunden auf die gespeicherte Einrichtung zu warten. Der vollständige Ablauf mit der jeweiligen Show ist auf der eingesetzten onPC-Version zu prüfen. Das Paket verändert keine Programmverknüpfung.
-
-## Steuersequenz
-
-Die Steuersequenz heißt **MediaLink – Nicht löschen**. Beim ersten Start übernimmt das Plugin die bisherige, eindeutig zugeordnete MediaLink-Steuersequenz unter diesem Namen. Die vorhandenen Cues werden dafür weder neu erstellt noch gelöscht oder umnummeriert.
-
-Die Zuordnung steht zusätzlich als Kennungszeile in der Sequenznotiz. Eigene Notizen bleiben erhalten. Die MediaLink-Kennungszeile beibehalten, damit die Sequenz unabhängig vom sichtbaren Namen wiedererkannt wird.
-
-Eine anderweitig belegte Sequenz wird nur über Steuersequenz nach Prüfung und ausdrücklicher Bestätigung übernommen. Zusätzliche Fixtures, weitere Cue-Parts oder Cue-Commands werden abgewiesen. Eine freie Nummer wird beim ersten gültigen Abgleich angelegt.
-
-## Presets
-
-| Einstellung | Bedeutung |
-|---|---|
-| All-Presetpool | All 1 bis All 5 |
-| Erste Presetposition | Beginn des Bereichs mit 1024 festen Positionen |
-| Anzahl zusätzlich | Zahl neu zu erzeugender Presets, 1 bis 1024 |
-| Vorgehen | Hinten ergänzen oder vorhandene Lücken ergänzen |
-| Abstand beim Anhängen | Abstand der neuen Positionen beim Anhängen; beim Lückenfüllen ohne Wirkung und im neuen Dialog deaktiviert |
-
-Vorschau zeigt die tatsächlich möglichen Positionen. Erst Jetzt erzeugen erstellt die angezeigten Presets. Vorhandene und fremde Presets werden nicht überschrieben. Eine Änderung der Startposition verschiebt keine vorhandenen Presets.
-
-Beispiel: Startposition 101, Abstand 10, Anzahl 10 erzeugt zunächst 101, 111 … 191. Ein weiterer Aufruf ergänzt 201, 211 … 291. Lücken ergänzen füllt dagegen die freien Positionen innerhalb dieses bestehenden Bereichs, unabhängig vom Anhängeabstand. Dieser Modus erweitert den Bereich nicht.
-
-Die Zuordnung der Fade-Werte bleibt fest: Position i von 0 bis 1023 entspricht `round(i × 16777215 / 1023)`. Vorhandene Werte werden beim Ergänzen nicht verändert. Neue Presets heißen OBS ML 0000 bis OBS ML 1023; passende ältere OBS-Presets bleiben nutzbar.
-
-## OBS-Cues programmieren
-
-1. Das Fade-Preset für das Fade-Fixture ausdrücklich in Cue Part 0 der Lesesequenz speichern.
-2. Als Cue-Note beispielsweise `OBS:1` oder `OBS:6` eintragen. Die Nummer bezeichnet die Position in der OBS-Szenenliste. Einheitliche Schreibweise ohne Leerzeichen und führende Nullen.
-
-`OBS:1` bezeichnet die erste, `OBS:6` die sechste und `OBS:12` die zwölfte Szene. Die Szenennummer ist unabhängig von der 24-Bit-Fadeposition. Zwei Cues können dieselbe Szenennummer und unterschiedliche Fade-Presets verwenden. Änderungen der OBS-Szenenreihenfolge ändern die Zuordnung.
-
-Bei laufender Bridge werden Zuordnungen vorbereitet und Änderungen schrittweise ergänzt. Vorhandene passende Steuer-Cues werden wiederverwendet. Geänderte Zuordnungen erhalten neue Steuer-Cues; alte Einträge bleiben erhalten. Die Steuersequenz kann deshalb bei wiederholten Änderungen wachsen.
-
-Ein Wechsel der aktiven Cue löst die Ausgabe aus. Eine Änderung an der gerade aktiven Cue gilt beim nächsten Eintritt. Ein erneutes Goto auf dieselbe bereits aktive Cue löst keinen neuen Szenenaufruf aus. Tracking und andere Cue-Parts werden nicht automatisch aufgelöst.
-
-## Programmer und mehrere Stationen
-
-Für Schreibschritte wird nur das betreffende Fixture verwendet. Andere Programmer-Werte bleiben erhalten. Ist das benötigte Fixture bereits im Programmer aktiv, wartet der Abgleich bzw. verweigert den Schreibschritt. Auswahl und Gruppengitter werden über eine kurzzeitig belegte freie Gruppe im Bereich 9000 bis 9999 gesichert und wiederhergestellt. Es wird kein ClearAll ausgeführt.
-
-Die Bridge auf einer vorgesehenen Station betreiben. Eine showweite Senderkennung verhindert gewöhnliche Mehrfachstarts. Prüfen / Diagnose bietet eine ausdrückliche Senderfreigabe an. Eine freigegebene Station stellt ihre Ausgabe beim nächsten Timerlauf ein. Die Sperre ist kein nachgewiesen atomarer Schutz gegen exakt gleichzeitige Starts auf mehreren Stationen.
-
-## Prüfstand
-
-Elf Gruppen mit dem tatsächlichen Lua-5.4-Produktionscode und MA-API-/UI-Testadaptern sind bestanden. Der öffentliche Import-Einstieg wird zusätzlich ohne Testexport geprüft, einschließlich absichtlich verweigerter MA-Funktionen während des Imports und der anschließenden Fehlerausgabe. Ein zusätzlicher strenger Compilecheck prüft alle 65 Schleifen auf Schreibzugriffe auf ihre Steuervariable. Die Textfeldprüfung kontrolliert Schriftart, UTF-8-Zeilenumbruch, geplante Breite, Zeilenhöhe und Abstände bei 1280, 960 und 800 Pixeln Bildschirmbreite. Die tatsächlichen MA-Schriftmaße müssen auf dem Pult und WebRemote geprüft werden. Native Darstellung, WebRemote, Import, Timer beim Showladen und reale DMX-Ausgabe müssen auf grandMA3 geprüft werden. Die Oberfläche wurde hier nicht auf einer echten MA ausgeführt.
-
-- REFERENZEN.md: API-Grundlagen
-- tests/: reproduzierbare Lua-Tests
-- source/medialink_core.lua: wartbarer Programmcode
-- tools/build_plugin.py: erzeugt die eigenständige Lua-Importdatei; --check prüft deren exakten Inhalt
-
-Zum Import sind weiterhin nur XML und Lua aus MA3/ erforderlich. Weitere Dateien werden auf dem Pult nicht nachgeladen.
+Copyright © 2026 Oliver Cassel. Für Farin und Bela.
+GPL-2.0-or-later, siehe LICENSE.

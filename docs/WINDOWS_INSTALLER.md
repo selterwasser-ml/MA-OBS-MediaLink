@@ -11,7 +11,7 @@ Der Installer ist für eine normale Installation von **OBS Studio 33 unter Windo
 
 Das Setup installiert DLL, Shader, Logo und das lokale MA-Paket nach `%ProgramData%\obs-studio\plugins\obs-sacn-crossfade`. Bei einem Update ersetzt es die mitgelieferten Dateien am gleichen Ort. Eine dort bereits manuell installierte Version wird aktualisiert; gespeicherte Universen, IP-Adressen und Regeln bleiben erhalten. Eine zusätzliche Crossfade-Quelle ist nicht erforderlich.
 
-Unter **Allgemein → MA-Paket und Anleitungen öffnen** öffnest du den Ordner `data\ma-paket`. Die Datei **START_HIER.html** enthält eine offline nutzbare Anleitung. XML und Lua des MA-Plugins sowie beide GDTF-Fixtures liegen dort ebenfalls bereit. Updates ersetzen die mitgelieferten MA-Dateien. Den Import in grandMA3 führst du weiterhin selbst aus. Das separate **MA_OBS_MediaLink_MA042.zip** bleibt zusätzlich als Download verfügbar.
+Unter **Allgemein → MA-Paket und Anleitungen öffnen** öffnest du den Ordner `data\ma-paket`. Die Datei **START_HIER.html** enthält eine offline nutzbare Anleitung. XML und Lua des MA-Plugins sowie beide GDTF-Fixtures liegen dort ebenfalls bereit. Updates ersetzen die mitgelieferten MA-Dateien. Den Import in grandMA3 führst du weiterhin selbst aus. Das separate **MA_OBS_MediaLink_MA043.zip** bleibt zusätzlich als Download verfügbar.
 
 Bei einer frischen Einrichtung gelten **Universum 1** und **Automatisch (Windows-Standard)** für die Multicast-Schnittstelle. Bei mehreren Netzwerkkarten kannst du eine konkrete lokale IPv4-Schnittstelle wählen. Vorhandene Einstellungen aus v0.45 werden nicht automatisch auf diese neuen Vorgaben zurückgesetzt.
 

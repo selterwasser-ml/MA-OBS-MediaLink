@@ -1,5 +1,17 @@
 # Änderungen
 
+## grandMA3 v0.43 BETA
+
+- Direkte automatische Fade-Werte in allen gültigen OBS-Cues der Lesesequenz; keine Preset-Erzeugung oder Preset-Einstellungen mehr.
+- Zunächst 10er-Abstände, freie Zwischenwerte beim Einfügen und vollständige Neuverteilung bei Platzmangel, doppelten oder vertauschten Werten.
+- Unveränderte 1024 Positionen, 24-Bit-Skalierung und 3+7-Kanal-Übertragung.
+- Entfernte OBS-Note entfernt den gespeicherten Wert; die Nummer ist wieder verfügbar.
+- Fade-Fixture bleibt auswählbar; individuelle Fade-/Delay-Zeiten werden bei Wertänderungen erhalten und zurückgelesen.
+- Alte Einstellungen werden übernommen und bestehende Referenzen in direkte Werte umgewandelt. Bestehende Poolobjekte werden nicht gelöscht.
+- Automatische Regressionstests einschließlich 1024-Cue-Grenze, 600 Bearbeitungszyklen und Schreibfehlern bestanden.
+- Erfolgreicher Funktionstest vom Anwender am 11. November 2026 bestätigt; keine zusätzlichen Versions-/Hardwarekombinationen daraus abgeleitet.
+- OBS-Plugin bleibt v0.46. Bestehende Release-Entwürfe bleiben auf ihrem festgelegten Stand.
+
 ## OBS v0.46 BETA – Testbuild
 
 - Neue Einrichtungen starten mit Universum 1. Gespeicherte Universen und IP-Adressen werden beim Update erhalten.

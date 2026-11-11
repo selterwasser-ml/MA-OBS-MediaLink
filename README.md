@@ -11,7 +11,7 @@ Copyright © 2026 Oliver Cassel
 | Komponente | Stand |
 | --- | --- |
 | OBS-Plugin | v0.46 BETA für Windows x64 / OBS 33 |
-| grandMA3-Plugin | v0.42 BETA |
+| grandMA3-Plugin | v0.43 BETA – automatische Cue-Werte |
 | Fixtureprofile | MA OBS MediaLink Fade (3 Kanäle) und MA OBS MediaLink Steuerung (7 Kanäle) |
 | Installer | v0.46 mit lokalem MA-Paket und optionaler Löschung der Einstellungen |
 
@@ -25,11 +25,29 @@ Die [Versionshinweise für v0.46](releases/v0.46.0-beta.1.md) nennen Änderungen
 
 1. [Windows-Paket über GitHub bauen](docs/BUILD.md) und [Setup ausführen](docs/WINDOWS_INSTALLER.md), alternativ [manuell installieren](docs/WINDOWS_ZIP.md) oder [lokal aus dem Quellcode bauen](docs/BUILD.md#lokal-bauen). MediaLink über das Dock oder **Werkzeuge → MA OBS MediaLink** einrichten. Eine zusätzliche Crossfade-Quelle in einer Szene ist nicht erforderlich.
 2. [Fixtureprofile importieren und patchen](fixtures/README.md). Beide Fixtures verwenden zusammen zehn aufeinanderfolgende DMX-Adressen im selben Universum.
-3. [grandMA3-Plugin importieren und einrichten](grandMA3/README_START_HIER.md). Die XML- und Lua-Datei aus grandMA3/MA3/ gemeinsam verwenden. Lesesequenz, Fixture-IDs, Steuersequenz und Presetbereich werden im Plugin festgelegt.
-4. Fade-Preset ausdrücklich in Cue Part 0 speichern. Die Cue-Note `OBS:1` ruft die erste Szene in der OBS-Szenenliste auf, `OBS:6` die sechste. Großbuchstaben, Doppelpunkt, Nummer; ohne Leerzeichen oder führende Nullen.
+3. [grandMA3-Plugin importieren und einrichten](grandMA3/README_START_HIER.md). Die XML- und Lua-Datei aus grandMA3/MA3/ gemeinsam verwenden. Lesesequenz, Fixture-IDs und Steuersequenz werden im Plugin festgelegt.
+4. Bridge starten: Fade-Werte werden automatisch direkt in Cue Part 0 gespeichert. Die Cue-Note `OBS:1` ruft die erste Szene in der OBS-Szenenliste auf, `OBS:6` die sechste. Großbuchstaben, Doppelpunkt, Nummer; ohne Leerzeichen oder führende Nullen.
 5. Universum und Startadresse auf beiden Seiten abgleichen und die Verbindung über die Diagnose prüfen.
 
 Eine Änderung der Reihenfolge in OBS verändert die Szenennummern. Die Lesesequenz ist unabhängig von der aktuell ausgewählten grandMA3-Sequenz. Die Bridge läuft auf einer vorgesehenen MA-Station.
+
+## Neue Cue-Bedienung ab MA v0.43
+
+Eine Cue-Note wie `OBS:1` genügt. Bei laufender Bridge bekommt jede gültige
+OBS-Cue automatisch einen direkten Fade-Wert: zuerst 10, 20, 30 usw.
+Eine neue Cue zwischen 10 und 20 erhält 15. Fehlt in einer benötigten Lücke
+ein freier Wert, verteilt das Plugin die gesamte Lesesequenz neu. Die 1024
+Positionen bleiben erhalten; bei großen Sequenzen werden die Abstände kleiner.
+
+Wird die OBS-Note entfernt, entfernt der nächste Abgleich auch den gespeicherten
+Fade-Wert. Das Fade-Fixture bleibt auswählbar und mit IndivFades bearbeitbar.
+Die frühere Preset-Bedienseite und ihre Einstellungen entfallen. Bestehende
+Referenzen werden in direkte Werte umgewandelt; alte Poolobjekte bleiben bestehen.
+
+Der Anwender hat die neue Version am 11. November 2026 erfolgreich ausprobiert
+und die Funktion bestätigt. Details und Grenzen des automatischen Testadapters
+stehen in der [MA-Anleitung](grandMA3/README_START_HIER.md).
+Der OBS-Code und die Fixtureprofile bleiben gegenüber v0.46 unverändert.
 
 ## Verzeichnisse
 

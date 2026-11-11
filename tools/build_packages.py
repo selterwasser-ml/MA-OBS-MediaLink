@@ -63,7 +63,7 @@ def main():
     args = parser.parse_args()
     dist = ROOT / "dist"
     packages = [dist / "MA_OBS_MediaLink_v046_Windows_x64.zip",
-                dist / "MA_OBS_MediaLink_MA042.zip"]
+                dist / "MA_OBS_MediaLink_MA043.zip"]
     if args.finalize_installer:
         packages.append(dist / "MA_OBS_MediaLink_v046_Setup_x64.exe")
         for path in packages:
@@ -106,7 +106,7 @@ def main():
         if not source.is_file():
             raise FileNotFoundError(source)
     metadata = {
-        "obsPluginVersion": "0.46.0", "maPluginVersion": "0.42",
+        "obsPluginVersion": "0.46.0", "maPluginVersion": "0.43",
         "obsSdkVersion": spec["obsVersion"], "qtVersion": spec["qtVersion"],
         "architecture": spec["architecture"],
         "revision": os.environ.get("MEDIALINK_REVISION", "local-unversioned"),

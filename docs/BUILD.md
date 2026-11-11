@@ -5,7 +5,7 @@
 1. Die geänderten Dateien einschließlich `.github/workflows/windows-build.yml` in das bestehende Repository hochladen und den Commit speichern. Die Ordnerstruktur muss erhalten bleiben.
 2. Im Repository **Actions → Tests und Windows-Build** öffnen. Der Upload startet den Ablauf automatisch. Falls GitHub zunächst das Aktivieren von Actions verlangt, diese aktivieren. Danach lässt sich der Ablauf über **Run workflow** auf dem Standardbranch erneut starten.
 3. Erst läuft **Steuerungs- und MA-Tests**, dann **Windows x64 / OBS 33**. Beim ersten Durchlauf werden größere Abhängigkeiten heruntergeladen und die OBS-Bibliotheken gebaut. Das kann mehrere Minuten dauern.
-4. Nach einem grünen Durchlauf unten unter **Artifacts** das Paket **MA-OBS-MediaLink-v046-MA042-windows-x64** herunterladen. Zum Download bei GitHub angemeldet bleiben. Die Bereitstellung ist auf 30 Tage begrenzt; ein späterer Build erzeugt sie erneut.
+4. Nach einem grünen Durchlauf unten unter **Artifacts** das Paket **MA-OBS-MediaLink-v046-MA043-windows-x64** herunterladen. Zum Download bei GitHub angemeldet bleiben. Die Bereitstellung ist auf 30 Tage begrenzt; ein späterer Build erzeugt sie erneut.
 
 Das heruntergeladene GitHub-Archiv enthält:
 
@@ -13,7 +13,7 @@ Das heruntergeladene GitHub-Archiv enthält:
 | --- | --- |
 | `MA_OBS_MediaLink_v046_Setup_x64.exe` | Windows-Installer mit Update und Deinstallation |
 | `MA_OBS_MediaLink_v046_Windows_x64.zip` | Fertige Plugin-DLL, Shader, Hinweise und Anleitung |
-| `MA_OBS_MediaLink_MA042.zip` | grandMA3-Importdateien, beide GDTF-Profile und MA-Anleitungen |
+| `MA_OBS_MediaLink_MA043.zip` | grandMA3-Importdateien, beide GDTF-Profile und MA-Anleitungen |
 | `SHA256SUMS.txt` | SHA256-Prüfsummen von Setup und beiden ZIP-Dateien |
 
 Die Pakete werden auch bei Pull Requests zum Prüfen erzeugt. Es wird kein Release veröffentlicht und nichts auf einem Nutzerrechner installiert. Eigene Repository-Secrets sind nicht erforderlich; der Ablauf hat nur Leserechte für den Repository-Inhalt.

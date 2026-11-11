@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <GMA3 DataVersion="2.3.0.4">
-  <Plugin Name="MA OBS MediaLink v0.42 BETA" Author="Oliver Cassel" Version="0.42 BETA">
+  <Plugin Name="MA OBS MediaLink v0.43 BETA" Author="Oliver Cassel" Version="0.43 BETA">
     <ComponentLua Name="Bedienung" FileName="MA_OBS_MediaLink.lua"/>
     <ComponentLua Name="Autostart" FileName="MA_OBS_MediaLink.lua"/>
   </Plugin>

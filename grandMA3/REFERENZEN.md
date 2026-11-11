@@ -56,3 +56,23 @@ Die benutzerdefinierten UI-Klassen werden nicht vollständig im MA-Handbuch doku
 - Lua 5.5, erste generische for-Variable und numerische for-Variable als const: https://www.lua.org/manual/5.5/manual.html#3.3.5
 
 Die Korrektur folgt direkt aus der vom Nutzer gelieferten Compilerfehlermeldung an Kernzeile 120. Die konkrete Lua-Version der Konsole wurde nicht ermittelt. Der zusätzliche Compilecheck erzwingt die Read-only-Regel in einer temporären Prüfvariante unter dem vorhandenen Lua-5.4-Compiler.
+
+## Direkte Cue-Werte v0.43 – 11. November 2026
+
+- Store-Quellen, Active For Selected und Merge/Remove:
+  https://help2.malighting.com/grandMA3/2.5/HTML/cue_store_settings_preferences.html
+- Programmer als ausdrücklich gewählte Quelle:
+  https://help.malighting.com/grandMA3/2.5/HTML/ok_programmer.html
+- Entfernen aktiver Attributwerte aus einer Cue:
+  https://help.malighting.com/grandMA3/2.4/HTML/ok_remove.html
+- CueOnly Off; CueOnly On würde zusätzliche Blockwerte in Folge-Cues erzeugen:
+  https://help.malighting.com/grandMA3/2.2/HTML/ok_cueonly.html
+- TrackingShield Off:
+  https://help.malighting.com/grandMA3/2.1/HTML/key_rn_v2_0.html
+
+Der absolute Wert wird aktiv gesetzt und mit Merge in den ausdrücklich
+adressierten Part 0 geschrieben. Individuelle Zeitschichten werden nicht
+aktiviert. Das Verhalten wurde am Adapter geprüft und braucht den Praxistest
+auf der eingesetzten Konsole; die Dokumentation ersetzt diesen nicht.
+Der Anwender hat den Funktionstest am 11. November 2026 als erfolgreich bestätigt.
+Historische Referenzen oben dokumentieren die Entwicklung vor v0.43.
